@@ -57,9 +57,7 @@ class MilestoneCoordinator extends EmberObject {
 
     let target = new MilestoneTarget(name, this, deferred, action);
 
-    if (!deferred) {
-      this._targets.push(target);
-    }
+    this._targets.push(target);
 
     return target;
   }
@@ -103,7 +101,6 @@ class MilestoneCoordinator extends EmberObject {
       this._pendingMilestones[name] = { deferred, action };
       return deferred.promise;
     } else if (target.name === name) {
-      this._targets.shift();
       return target._targetReached(action);
     } else {
       return action();
@@ -129,26 +126,39 @@ class MilestoneTarget {
     return this._setTargetReachedHandler(() => {
       assert(`Can't pause at two milestones at once from the same coordinator.`, !this._coordinator._at);
       this._coordinator._at = this;
+      this._resolveCoordinatorDeferred()
     });
   }
 
   andReturn(value) {
-    return this._setTargetReachedHandler(() => this._milestoneDeferred.resolve(value));
+    return this._setTargetReachedHandler(() => {
+      this._milestoneDeferred.resolve(value);
+      this._resolveCoordinatorDeferred()
+    });
   }
 
   andThrow(error) {
-    return this._setTargetReachedHandler(() => this._milestoneDeferred.reject(error));
+    return this._setTargetReachedHandler(() => {
+      this._milestoneDeferred.reject(error);
+      this._resolveCoordinatorDeferred()
+    });
   }
 
   andContinue() {
-    return this._setTargetReachedHandler(() => this._milestoneDeferred.resolve(this._milestoneAction()));
+    return this._setTargetReachedHandler(() => {
+      let actionPromise = resolve(this._milestoneAction());
+      this._milestoneDeferred.resolve(actionPromise);
+
+      // Don't resolve the coordinator promise until the underlying milestone action has completed
+      actionPromise.finally(() => this._resolveCoordinatorDeferred());
+    });
   }
 
   _targetReached(action) {
     this._milestoneAction = action;
 
     if (this._targetReachedHandler) {
-      this._executeOnReachedHandler();
+      this._targetReachedHandler();
     }
 
     return this._milestoneDeferred.promise;
@@ -158,14 +168,17 @@ class MilestoneTarget {
     this._targetReachedHandler = handler;
 
     if (this._milestoneAction) {
-      this._executeOnReachedHandler();
+      this._targetReachedHandler();
     }
 
     return this._coordinator;
   }
 
-  _executeOnReachedHandler() {
-    this._targetReachedHandler();
+  _resolveCoordinatorDeferred() {
     this._coordinatorDeferred.resolve();
+
+    if (this._coordinator._targets[0] === this) {
+      this._coordinator._targets.shift();
+    }
   }
 }

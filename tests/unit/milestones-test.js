@@ -1,4 +1,5 @@
 import { module, test } from 'qunit';
+import { Promise, defer } from 'rsvp';
 import { milestone, setupMilestones } from 'ember-milestones';
 
 module('Unit | milestones', function(hooks) {
@@ -37,6 +38,43 @@ module('Unit | milestones', function(hooks) {
     assert.equal(this.location, 'two-completed');
     assert.equal(first, 1);
     assert.equal(second, 2);
+  });
+
+  test('continuing from a milestone resolves after its callback does', async function(assert) {
+    let resolved = false;
+    let deferred = defer();
+    let program = async () => {
+      this.location = 'before';
+      let result = await milestone('one', () => {
+        this.location = 'during';
+        return deferred.promise;
+      });
+      this.location = 'after';
+      return result;
+    };
+
+    let programPromise = program();
+
+    this.milestones.advanceTo('one').andContinue().then(() => resolved = true);
+
+    assert.equal(this.location, 'during');
+    assert.notOk(resolved);
+
+    // Allow anything that's gonna settle to settle
+    await next();
+
+    // Ensure the milestone callback was run but the `.andContinue()` promise hasn't resolved
+    assert.equal(this.location, 'during');
+    assert.notOk(resolved);
+
+    deferred.resolve('ok');
+
+    await next();
+
+    assert.equal(this.location, 'after');
+    assert.ok(resolved);
+
+    assert.equal(await programPromise, 'ok');
   });
 
   test('advancing to an already-waiting milestone', async function(assert) {
@@ -106,4 +144,8 @@ module('Unit | milestones', function(hooks) {
     await programPromise;
     assert.equal(this.location, 'two-completed');
   });
+
+  function next() {
+    return new Promise(resolve => setTimeout(resolve));
+  }
 });

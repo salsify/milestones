@@ -1,17 +1,17 @@
 {
   "name": "ember-milestones",
-  "version": "0.0.0",
-  "description": "The default blueprint for ember-cli addons.",
+  "version": "1.0.0-alpha.1",
+  "description": "Tools for finding your way through async code",
   "keywords": [
     "ember-addon"
   ],
   "license": "MIT",
-  "author": "",
+  "author": "Dan Freeman",
   "directories": {
     "doc": "doc",
     "test": "tests"
   },
-  "repository": "",
+  "repository": "salsify/ember-milestones",
   "scripts": {
     "build": "ember build",
     "start": "ember server",
