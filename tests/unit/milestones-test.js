@@ -145,6 +145,36 @@ module('Unit | milestones', function(hooks) {
     assert.equal(this.location, 'two-completed');
   });
 
+  test('immediate vs deferred continuation', async function(assert) {
+    let program = async () => {
+      this.location = 'before';
+
+      let result = await milestone('one', async () => 'ok');
+
+      this.location = 'between';
+
+      await 1;
+      await 2;
+      await 3;
+
+      this.location = 'after';
+
+      return result;
+    };
+
+    let programPromise = program();
+    assert.equal(this.location, 'before');
+    await this.milestones.advanceTo('one').andContinue({ immediate: true });
+    assert.equal(this.location, 'between');
+    assert.equal(await programPromise, 'ok');
+
+    programPromise = program();
+    assert.equal(this.location, 'before');
+    await this.milestones.advanceTo('one').andContinue();
+    assert.equal(this.location, 'after');
+    assert.equal(await programPromise, 'ok');
+  });
+
   function next() {
     return new Promise(resolve => setTimeout(resolve));
   }

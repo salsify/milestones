@@ -1,5 +1,6 @@
 import EmberObject from '@ember/object';
 import { assert } from '@ember/debug';
+import { next } from '@ember/runloop';
 import { defer, resolve } from 'rsvp';
 
 export function activateMilestones(milestones) {
@@ -53,7 +54,7 @@ class MilestoneCoordinator extends EmberObject {
     assert(`Milestone '${name}' is not active.`, this.names.indexOf(name) !== -1);
     let { deferred, action } = this._pendingMilestones[name] || {};
 
-    this._continueAllExcept(name);
+    this._continueAll({ except: name });
 
     let target = new MilestoneTarget(name, this, deferred, action);
 
@@ -62,9 +63,9 @@ class MilestoneCoordinator extends EmberObject {
     return target;
   }
 
-  _continueAllExcept(name) {
+  _continueAll({ except } = {}) {
     Object.keys(this._pendingMilestones).forEach((key) => {
-      if (key !== name) {
+      if (key !== except) {
         let pending = this._pendingMilestones[key];
         pending.deferred.resolve(pending.action());
       }
@@ -84,7 +85,7 @@ class MilestoneCoordinator extends EmberObject {
       this._at.andContinue();
     }
 
-    this._continueAllExcept(null);
+    this._continueAll();
 
     this.names.forEach((name) => {
       ACTIVE_MILESTONES[name] = undefined;
@@ -122,35 +123,35 @@ class MilestoneTarget {
     assert(`You must designate an action when milestone ${this.name} is hit before you can advance to it.`);
   }
 
-  andPause() {
+  andPause(options) {
     return this._setTargetReachedHandler(() => {
       assert(`Can't pause at two milestones at once from the same coordinator.`, !this._coordinator._at);
       this._coordinator._at = this;
-      this._resolveCoordinatorDeferred()
+      this._resolveCoordinatorDeferred(options)
     });
   }
 
-  andReturn(value) {
+  andReturn(value, options) {
     return this._setTargetReachedHandler(() => {
       this._milestoneDeferred.resolve(value);
-      this._resolveCoordinatorDeferred()
+      this._resolveCoordinatorDeferred(options)
     });
   }
 
-  andThrow(error) {
+  andThrow(error, options) {
     return this._setTargetReachedHandler(() => {
       this._milestoneDeferred.reject(error);
-      this._resolveCoordinatorDeferred()
+      this._resolveCoordinatorDeferred(options)
     });
   }
 
-  andContinue() {
+  andContinue(options) {
     return this._setTargetReachedHandler(() => {
       let actionPromise = resolve(this._milestoneAction());
       this._milestoneDeferred.resolve(actionPromise);
 
       // Don't resolve the coordinator promise until the underlying milestone action has completed
-      actionPromise.finally(() => this._resolveCoordinatorDeferred());
+      actionPromise.finally(() => this._resolveCoordinatorDeferred(options));
     });
   }
 
@@ -174,11 +175,15 @@ class MilestoneTarget {
     return this._coordinator;
   }
 
-  _resolveCoordinatorDeferred() {
-    this._coordinatorDeferred.resolve();
-
+  _resolveCoordinatorDeferred({ immediate = false } = {}) {
     if (this._coordinator._targets[0] === this) {
       this._coordinator._targets.shift();
+    }
+
+    if (immediate) {
+      this._coordinatorDeferred.resolve();
+    } else {
+      next(() => this._coordinatorDeferred.resolve());
     }
   }
 }
