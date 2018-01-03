@@ -32,7 +32,7 @@ class MilestoneCoordinator extends EmberObject {
     super();
 
     names.forEach((name) => {
-      assert(!ACTIVE_MILESTONES[name], `Milestone '${name}' is already active.`);
+      assert(`Milestone '${name}' is already active.`, !ACTIVE_MILESTONES[name]);
       ACTIVE_MILESTONES[name] = this;
     });
 
