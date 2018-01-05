@@ -103,6 +103,20 @@ module('Unit | milestones', function(hooks) {
     assert.equal(this.location, 'one-completed');
   });
 
+  test('advancing while paused at a previous milestone', async function(assert) {
+    let programPromise = this.program();
+
+    await this.milestones.advanceTo('one').andPause();
+    assert.equal(this.location, 'before');
+
+    await this.milestones.advanceTo('two').andPause();
+    assert.equal(this.location, 'one-completed');
+
+    this.milestones.deactivate();
+
+    assert.deepEqual(await programPromise, { first: 1, second: 2 });
+  });
+
   test('stubbing a return value', async function(assert) {
     this.milestones
       .advanceTo('one').andReturn(111)

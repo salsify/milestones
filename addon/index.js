@@ -64,6 +64,11 @@ class MilestoneCoordinator extends EmberObject {
   }
 
   _continueAll({ except } = {}) {
+    if (this._at && this._at.name !== except) {
+      this._at.andContinue();
+      this.unpause();
+    }
+
     Object.keys(this._pendingMilestones).forEach((key) => {
       if (key !== except) {
         let pending = this._pendingMilestones[key];
