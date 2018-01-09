@@ -2,6 +2,11 @@ import EmberObject from '@ember/object';
 import { assert } from '@ember/debug';
 import { next } from '@ember/runloop';
 import { defer, resolve } from 'rsvp';
+import logger from 'ember-debug-logger';
+
+const debugActive = logger('ember-milestones:active');
+const debugInactive = logger('ember-milestones:inactive');
+const debugCoordinator = logger('ember-milestones:coordinator');
 
 export function activateMilestones(milestones) {
   return new MilestoneCoordinator(milestones);
@@ -9,8 +14,10 @@ export function activateMilestones(milestones) {
 
 export function milestone(name, callback) {
   if (ACTIVE_MILESTONES[name]) {
+    debugActive('reached active milestone %s', name);
     return ACTIVE_MILESTONES[name]._dispatch(name, callback);
   } else {
+    debugInactive('skipping inactive milestone %s', name);
     return callback();
   }
 }
@@ -46,6 +53,11 @@ class MilestoneCoordinator extends EmberObject {
     let chain = this._targets.reduce((previous, target) => {
       return previous.then(() => target._coordinatorDeferred.promise)
     }, resolve());
+
+    let targetCount = this._targets.length;
+    if (targetCount) {
+      debugCoordinator('awaiting milestone arrival sequence: %o', this._targets.map(target => target.name));
+    }
 
     return chain.then(...arguments);
   }
