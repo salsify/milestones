@@ -1,5 +1,4 @@
 import { module, test } from 'qunit';
-import { Promise, defer } from 'rsvp';
 import { milestone, setupMilestones } from 'ember-milestones';
 
 module('Unit | milestones', function(hooks) {
@@ -17,7 +16,7 @@ module('Unit | milestones', function(hooks) {
   });
 
   test('with no milestones active', async function(assert) {
-    this.milestones.deactivate();
+    this.milestones.deactivateAll();
 
     let { first, second } = await this.program();
     assert.equal(this.location, 'two-completed');
@@ -28,10 +27,10 @@ module('Unit | milestones', function(hooks) {
   test('skipping a milestone', async function(assert) {
     let programPromise = this.program();
 
-    await this.milestones.advanceTo('two').andPause();
+    let two = await this.milestones.advanceTo('two');
     assert.equal(this.location, 'one-completed');
 
-    this.milestones.unpause().andContinue();
+    two.continue();
     assert.equal(this.location, 'two-started');
 
     let { first, second } = await programPromise;
@@ -40,53 +39,16 @@ module('Unit | milestones', function(hooks) {
     assert.equal(second, 2);
   });
 
-  test('continuing from a milestone resolves after its callback does', async function(assert) {
-    let resolved = false;
-    let deferred = defer();
-    let program = async () => {
-      this.location = 'before';
-      let result = await milestone('one', () => {
-        this.location = 'during';
-        return deferred.promise;
-      });
-      this.location = 'after';
-      return result;
-    };
-
-    let programPromise = program();
-
-    this.milestones.advanceTo('one').andContinue().then(() => resolved = true);
-
-    assert.equal(this.location, 'during');
-    assert.notOk(resolved);
-
-    // Allow anything that's gonna settle to settle
-    await next();
-
-    // Ensure the milestone callback was run but the `.andContinue()` promise hasn't resolved
-    assert.equal(this.location, 'during');
-    assert.notOk(resolved);
-
-    deferred.resolve('ok');
-
-    await next();
-
-    assert.equal(this.location, 'after');
-    assert.ok(resolved);
-
-    assert.equal(await programPromise, 'ok');
-  });
-
   test('advancing to an already-waiting milestone', async function(assert) {
     let programPromise = this.program();
 
     assert.equal(this.location, 'before');
 
-    await this.milestones.advanceTo('one').andPause();
+    await this.milestones.advanceTo('one');
 
     assert.equal(this.location, 'before');
 
-    this.milestones.deactivate();
+    this.milestones.deactivateAll();
 
     let { first, second } = await programPromise;
     assert.equal(first, 1);
@@ -94,7 +56,7 @@ module('Unit | milestones', function(hooks) {
   });
 
   test('advancing to a not-yet-waiting milestone', async function(assert) {
-    let advancePromise = this.milestones.advanceTo('two').andPause();
+    let advancePromise = this.milestones.advanceTo('two');
 
     this.program();
     assert.equal(this.location, 'one-started');
@@ -106,57 +68,99 @@ module('Unit | milestones', function(hooks) {
   test('advancing while paused at a previous milestone', async function(assert) {
     let programPromise = this.program();
 
-    await this.milestones.advanceTo('one').andPause();
+    await this.milestones.advanceTo('one');
     assert.equal(this.location, 'before');
 
-    await this.milestones.advanceTo('two').andPause();
+    await this.milestones.advanceTo('two');
     assert.equal(this.location, 'one-completed');
 
-    this.milestones.deactivate();
+    this.milestones.deactivateAll();
 
     assert.deepEqual(await programPromise, { first: 1, second: 2 });
   });
 
   test('stubbing a return value', async function(assert) {
-    this.milestones
-      .advanceTo('one').andReturn(111)
-      .advanceTo('two').andReturn(222);
+    let programPromise = this.program();
 
-    let { first, second } = await this.program();
+    await this.milestones.advanceTo('one').andReturn(111);
+    await this.milestones.advanceTo('two').andReturn(222);
+    assert.equal(this.location, 'two-completed');
+
+    let { first, second } = await programPromise;
     assert.equal(first, 111);
     assert.equal(second, 222);
   });
 
   test('throwing an exception', async function(assert) {
     let boom = new Error('boom!');
+    let program = async () => {
+      try {
+        await milestone('one', () => 'bad');
+      } catch (error) {
+        return error;
+      }
+    };
+
 
     this.milestones.advanceTo('one').andThrow(boom);
+    let promise = program();
 
-    try {
-      await this.program();
-      assert.ok(false, 'Should have thrown an error');
-    } catch (error) {
-      assert.equal(error, boom);
-    }
+    assert.equal(await promise, boom);
   });
 
   test('stepping through each location', async function(assert) {
     let programPromise = this.program();
 
-    await this.milestones.advanceTo('one').andPause();
+    let one = await this.milestones.advanceTo('one');
     assert.equal(this.location, 'before');
 
-    this.milestones.unpause().andContinue();
+    one.continue();
     assert.equal(this.location, 'one-started');
 
-    await this.milestones.advanceTo('two').andPause();
+    let two = await this.milestones.advanceTo('two');
     assert.equal(this.location, 'one-completed');
 
-    this.milestones.unpause().andContinue();
+    two.continue();
     assert.equal(this.location, 'two-started');
 
     await programPromise;
     assert.equal(this.location, 'two-completed');
+  });
+
+  test('nested milestones', async function(assert) {
+    let program = async () => {
+      this.location = 'before-out';
+      let result = await milestone('one', async () => {
+        this.location = 'before-in';
+        let inner = await milestone('two', async () => {
+          this.location = 'in';
+          return 'ok';
+        });
+        this.location = 'after-in';
+        return inner;
+      });
+      this.location = 'after-out';
+      return result;
+    };
+
+    let programPromise = program();
+
+    let one = await this.milestones.advanceTo('one');
+    assert.equal(this.location, 'before-out');
+
+    let two = await this.milestones.advanceTo('two');
+    assert.equal(this.location, 'before-in');
+
+    let twoCompletion = two.continue({ immediate: true });
+    assert.equal(this.location, 'in');
+
+    await twoCompletion;
+    assert.equal(this.location, 'after-in');
+
+    await one.continue();
+    assert.equal(this.location, 'after-out');
+
+    assert.equal(await programPromise, 'ok');
   });
 
   test('immediate vs deferred continuation', async function(assert) {
@@ -167,9 +171,7 @@ module('Unit | milestones', function(hooks) {
 
       this.location = 'between';
 
-      await 1;
-      await 2;
-      await 3;
+      await null;
 
       this.location = 'after';
 
@@ -188,8 +190,4 @@ module('Unit | milestones', function(hooks) {
     assert.equal(this.location, 'after');
     assert.equal(await programPromise, 'ok');
   });
-
-  function next() {
-    return new Promise(resolve => setTimeout(resolve));
-  }
 });

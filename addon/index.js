@@ -1,7 +1,7 @@
 import EmberObject from '@ember/object';
 import { assert } from '@ember/debug';
 import { next } from '@ember/runloop';
-import { defer, resolve } from 'rsvp';
+import { defer, Promise } from 'rsvp';
 import logger from 'ember-debug-logger';
 
 const debugActive = logger('ember-milestones:active');
@@ -13,9 +13,9 @@ export function activateMilestones(milestones) {
 }
 
 export function milestone(name, callback) {
-  if (ACTIVE_MILESTONES[name]) {
+  if (MILESTONE_COORDINATORS[name]) {
     debugActive('reached active milestone %s', name);
-    return ACTIVE_MILESTONES[name]._dispatch(name, callback);
+    return MILESTONE_COORDINATORS[name]._dispatch(name, callback);
   } else {
     debugInactive('skipping inactive milestone %s', name);
     return callback();
@@ -28,98 +28,80 @@ export function setupMilestones(hooks, milestones) {
   });
 
   hooks.afterEach(function() {
-    this.milestones.deactivate();
+    this.milestones.deactivateAll();
   });
 }
 
-const ACTIVE_MILESTONES = Object.create(null);
+const MILESTONE_COORDINATORS = Object.create(null);
 
 class MilestoneCoordinator extends EmberObject {
   constructor(names) {
     super();
 
     names.forEach((name) => {
-      assert(`Milestone '${name}' is already active.`, !ACTIVE_MILESTONES[name]);
-      ACTIVE_MILESTONES[name] = this;
+      assert(`Milestone '${name}' is already active.`, !MILESTONE_COORDINATORS[name]);
+      MILESTONE_COORDINATORS[name] = this;
     });
 
     this.names = names;
-    this._pendingMilestones = Object.create(null);
-    this._targets = [];
+    this._pendingActions = Object.create(null);
+    this._coordinatorPromise = null;
+    this._nextTarget = null;
     this._at = null;
-  }
-
-  then() {
-    let chain = this._targets.reduce((previous, target) => {
-      return previous.then(() => target._coordinatorDeferred.promise)
-    }, resolve());
-
-    let targetCount = this._targets.length;
-    if (targetCount) {
-      debugCoordinator('awaiting milestone arrival sequence: %o', this._targets.map(target => target.name));
-    }
-
-    return chain.then(...arguments);
   }
 
   advanceTo(name) {
     assert(`Milestone '${name}' is not active.`, this.names.indexOf(name) !== -1);
-    let { deferred, action } = this._pendingMilestones[name] || {};
+    let { deferred, action } = this._pendingActions[name] || {};
+    let target = new MilestoneTarget(name, this);
 
+    delete this._pendingActions[name];
+
+    this._nextTarget = target;
     this._continueAll({ except: name });
 
-    let target = new MilestoneTarget(name, this, deferred, action);
-
-    this._targets.push(target);
+    if (action) {
+      target._targetReached(deferred, action);
+    }
 
     return target;
   }
 
   _continueAll({ except } = {}) {
-    if (this._at && this._at.name !== except) {
-      this._at.andContinue();
-      this.unpause();
+    if (this._at && this._at.target.name !== except && !this._at.resolution) {
+      this._at.continue();
     }
 
-    Object.keys(this._pendingMilestones).forEach((key) => {
+    Object.keys(this._pendingActions).forEach((key) => {
       if (key !== except) {
-        let pending = this._pendingMilestones[key];
+        let pending = this._pendingActions[key];
         pending.deferred.resolve(pending.action());
       }
-      delete this._pendingMilestones[key];
+      delete this._pendingActions[key];
     });
   }
 
-  unpause() {
-    assert(`Can't unpause when not stopped at a milestone`, this._at);
-    let target = this._at;
-    this._at = null;
-    return target;
-  }
-
-  deactivate() {
-    if (this._at) {
-      this._at.andContinue();
-    }
-
+  deactivateAll() {
     this._continueAll();
 
     this.names.forEach((name) => {
-      ACTIVE_MILESTONES[name] = undefined;
+      MILESTONE_COORDINATORS[name] = undefined;
     });
 
     this.names = [];
   }
 
   _dispatch(name, action) {
-    let target = this._targets[0];
+    let target = this._nextTarget;
     if (!target) {
-      assert(`Milestone '${name}' is already pending.`, !this._pendingMilestones[name]);
-      let deferred = defer();
-      this._pendingMilestones[name] = { deferred, action };
+      assert(`Milestone '${name}' is already pending.`, !this._pendingActions[name]);
+      let deferred = defer(`ember-milestones:milestone#${name}`);
+      this._pendingActions[name] = { deferred, action };
       return deferred.promise;
     } else if (target.name === name) {
-      return target._targetReached(action);
+      let deferred = defer(`ember-milestones:reached#${name}`);
+      target._targetReached(deferred, action);
+      return deferred.promise;
     } else {
       return action();
     }
@@ -127,80 +109,88 @@ class MilestoneCoordinator extends EmberObject {
 }
 
 class MilestoneTarget {
-  constructor(name, coordinator, milestoneDeferred = defer(), milestoneAction = null) {
+  constructor(name, coordinator) {
     this.name = name;
     this._coordinator = coordinator;
-    this._coordinatorDeferred = defer();
-    this._targetReachedHandler = null;
-    this._milestoneDeferred = milestoneDeferred;
-    this._milestoneAction = milestoneAction;
+    this._coordinatorDeferred = defer(`ember-milestones:coordinator#${name}`);
   }
 
   then() {
-    assert(`You must designate an action when milestone ${this.name} is hit before you can advance to it.`);
-  }
-
-  andPause(options) {
-    return this._setTargetReachedHandler(() => {
-      assert(`Can't pause at two milestones at once from the same coordinator.`, !this._coordinator._at);
-      this._coordinator._at = this;
-      this._resolveCoordinatorDeferred(options)
-    });
+    debugCoordinator('awaiting milestone arrival %s', this.name);
+    return this._coordinatorDeferred.promise.then(...arguments);
   }
 
   andReturn(value, options) {
-    return this._setTargetReachedHandler(() => {
-      this._milestoneDeferred.resolve(value);
-      this._resolveCoordinatorDeferred(options)
-    });
+    return this._chain(milestone => milestone.return(value, options));
   }
 
   andThrow(error, options) {
-    return this._setTargetReachedHandler(() => {
-      this._milestoneDeferred.reject(error);
-      this._resolveCoordinatorDeferred(options)
-    });
+    return this._chain(milestone => milestone.throw(error, options));
   }
 
   andContinue(options) {
-    return this._setTargetReachedHandler(() => {
-      let actionPromise = resolve(this._milestoneAction());
-      this._milestoneDeferred.resolve(actionPromise);
+    return this._chain(milestone => milestone.continue(options));
+  }
 
-      // Don't resolve the coordinator promise until the underlying milestone action has completed
-      actionPromise.finally(() => this._resolveCoordinatorDeferred(options));
+  _chain(f) {
+    return this.then(f).then(() => {}, () => {});
+  }
+
+  _targetReached(deferred, action) {
+    if (this._coordinator._nextTarget === this) {
+      this._coordinator._nextTarget = null;
+    }
+
+    let milestone = new Milestone(this, action, deferred);
+
+    this._coordinator._at = milestone;
+    this._coordinatorDeferred.resolve(milestone);
+  }
+}
+
+class Milestone {
+  constructor(target, action, deferred) {
+    this.target = target;
+    this.action = action;
+    this.deferred = deferred;
+    this.resolution = null;
+  }
+
+  continue(options) {
+    let { action } = this;
+    return this._complete('continue', options, () => {
+      this.deferred.resolve(action());
     });
   }
 
-  _targetReached(action) {
-    this._milestoneAction = action;
-
-    if (this._targetReachedHandler) {
-      this._targetReachedHandler();
-    }
-
-    return this._milestoneDeferred.promise;
+  throw(error, options) {
+    return this._complete('throw', options, () => {
+      this.deferred.reject(error);
+    });
   }
 
-  _setTargetReachedHandler(handler) {
-    this._targetReachedHandler = handler;
-
-    if (this._milestoneAction) {
-      this._targetReachedHandler();
-    }
-
-    return this._coordinator;
+  return(value, options) {
+    return this._complete('return', options, () => {
+      this.deferred.resolve(value);
+    });
   }
 
-  _resolveCoordinatorDeferred({ immediate = false } = {}) {
-    if (this._coordinator._targets[0] === this) {
-      this._coordinator._targets.shift();
+  _complete(resolution, options = {}, f) {
+    assert(`Conflicting resolutions for milestone ${this.target.name}`, !this.resolution || this.resolution === resolution);
+
+    if (!this.resolution) {
+      this.resolution = resolution;
+
+      f();
+
+      if (this.target._coordinator._at === this) {
+        this.target._coordinator._at = null;
+      }
     }
 
-    if (immediate) {
-      this._coordinatorDeferred.resolve();
-    } else {
-      next(() => this._coordinatorDeferred.resolve());
-    }
+    return new Promise((resolve) => {
+      let doResolve = options.immediate ? () => resolve() : () => next(resolve);
+      return this.deferred.promise.then(doResolve, doResolve);
+    });
   }
 }
