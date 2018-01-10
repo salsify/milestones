@@ -31,6 +31,12 @@ export default class Milestone {
     });
   }
 
+  cancel(options) {
+    return this._complete('cancel', options, () => {
+      this._deferred.cancel();
+    });
+  }
+
   _complete(resolution, options = {}, finalizer) {
     assert(`Multiple resolutions for milestone ${this.name}`, !this.resolution || this.resolution === resolution);
 

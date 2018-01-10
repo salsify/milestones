@@ -1,5 +1,5 @@
 import { assert } from '@ember/debug';
-import { defer } from 'rsvp';
+import { defer } from './defer';
 import MilestoneTarget from './milestone-target';
 import Milestone from './milestone';
 

@@ -1,3 +1,6 @@
+import require from 'require';
+import EmberObject from '@ember/object';
+import { run } from '@ember/runloop';
 import { module, test } from 'qunit';
 import { milestone, setupMilestones } from 'ember-milestones';
 
@@ -99,11 +102,8 @@ module('Unit | milestones', function(hooks) {
       }
     };
 
-
     this.milestones.advanceTo('one').andThrow(boom);
-    let promise = program();
-
-    assert.equal(await promise, boom);
+    assert.equal(await program(), boom);
   });
 
   test('stepping through each location', async function(assert) {
@@ -188,4 +188,67 @@ module('Unit | milestones', function(hooks) {
     assert.equal(this.location, 'after');
     assert.equal(await programPromise, 'ok');
   });
+
+  if (require.has('ember-concurrency')) {
+    const { task, didCancel } = require('ember-concurrency');
+    const TaskHost = EmberObject.extend({
+      task: task(function*() {
+        return yield milestone('one', () => this.get('subtask').perform());
+      }),
+
+      subtask: task(function*() {
+        yield milestone('two', () => {});
+      }),
+    });
+
+    test('task linkage from parent -> child', async function(assert) {
+      let host = TaskHost.create();
+      host.get('task').perform();
+
+      await this.milestones.advanceTo('two');
+      assert.ok(host.get('task.isRunning'));
+      assert.ok(host.get('subtask.isRunning'));
+
+      run(() => host.get('task').cancelAll());
+      assert.ok(didCancel(host.get('task.last.error')));
+      assert.ok(didCancel(host.get('subtask.last.error')));
+    });
+
+    test('task linkage from child -> parent', async function(assert) {
+      let host = TaskHost.create();
+      host.get('task').perform();
+
+      await this.milestones.advanceTo('two');
+      assert.ok(host.get('task.isRunning'));
+      assert.ok(host.get('subtask.isRunning'));
+
+      // Cancel child -> parent
+      run(() => host.get('subtask').cancelAll());
+      assert.ok(didCancel(host.get('task.last.error')));
+      assert.ok(didCancel(host.get('subtask.last.error')));
+    });
+
+    test('milestone cancellation', async function(assert) {
+      let host = TaskHost.create();
+      host.get('task').perform();
+
+      let two = await this.milestones.advanceTo('two');
+      assert.ok(host.get('task.isRunning'));
+      assert.ok(host.get('subtask.isRunning'));
+
+      run(() => two.cancel());
+      assert.ok(didCancel(host.get('task.last.error')));
+      assert.ok(didCancel(host.get('subtask.last.error')));
+    });
+  } else {
+    test('a useful error is given when trying to cancel without ember-concurrency', async function(assert) {
+      this.program();
+      try {
+        await this.milestones.advanceTo('one').andCancel();
+        assert.ok(false, 'Error should have been thrown');
+      } catch (error) {
+        assert.ok(/ember-concurrency/.test(error.message));
+      }
+    });
+  }
 });

@@ -32,6 +32,12 @@ export default class MilestoneTarget {
     });
   }
 
+  andCancel(options) {
+    return this._chain((milestone) => {
+      return milestone.cancel(options);
+    });
+  }
+
   _chain(f) {
     return this.then(f).then(() => {}, () => {});
   }
