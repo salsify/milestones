@@ -39,7 +39,7 @@ export default class MilestoneTarget {
   }
 
   _chain(f) {
-    return this.then(f).then(() => {}, () => {});
+    return this.then(f).then(() => undefined);
   }
 
   _resolve(milestone) {
