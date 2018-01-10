@@ -41,11 +41,9 @@ module('Unit | milestones', function(hooks) {
 
   test('advancing to an already-waiting milestone', async function(assert) {
     let programPromise = this.program();
-
     assert.equal(this.location, 'before');
 
     await this.milestones.advanceTo('one');
-
     assert.equal(this.location, 'before');
 
     this.milestones.deactivateAll();
