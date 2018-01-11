@@ -1,15 +1,15 @@
 import { assert } from '@ember/debug';
 import { defer } from './defer';
 import MilestoneTarget from './milestone-target';
-import Milestone from './milestone';
+import MilestoneHandle from './milestone-handle';
 
-export const MILESTONE_COORDINATORS = Object.create(null);
+export const ACTIVE_COORDINATORS = Object.create(null);
 
 export default class MilestoneCoordinator {
   constructor(names) {
     names.forEach((name) => {
-      assert(`Milestone '${name}' is already active.`, !MILESTONE_COORDINATORS[name]);
-      MILESTONE_COORDINATORS[name] = this;
+      assert(`Milestone '${name}' is already active.`, !ACTIVE_COORDINATORS[name]);
+      ACTIVE_COORDINATORS[name] = this;
     });
 
     this.names = names;
@@ -18,8 +18,15 @@ export default class MilestoneCoordinator {
     this._pausedMilestone = null;
   }
 
+  static deactivateAll() {
+    let keys = Object.keys(ACTIVE_COORDINATORS);
+    for (; keys.length; keys = Object.keys(ACTIVE_COORDINATORS)) {
+      ACTIVE_COORDINATORS[keys[0]].deactivateAll();
+    }
+  }
+
   static forMilestone(name) {
-    return MILESTONE_COORDINATORS[name];
+    return ACTIVE_COORDINATORS[name];
   }
 
   advanceTo(name) {
@@ -42,7 +49,7 @@ export default class MilestoneCoordinator {
     this._continueAll();
 
     this.names.forEach((name) => {
-      MILESTONE_COORDINATORS[name] = undefined;
+      delete ACTIVE_COORDINATORS[name];
     });
 
     this.names = [];
@@ -69,7 +76,7 @@ export default class MilestoneCoordinator {
 
   _targetReached(target, deferred, action) {
     this._nextTarget = null;
-    this._pausedMilestone = new Milestone(target.name, this, action, deferred);
+    this._pausedMilestone = new MilestoneHandle(target.name, this, action, deferred);
 
     target._resolve(this._pausedMilestone);
   }

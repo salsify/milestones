@@ -15,31 +15,23 @@ export default class MilestoneTarget {
   }
 
   andReturn(value, options) {
-    return this._chain((milestone) => {
-      return milestone.return(value, options);
-    });
+    return this._chain('return', value, options);
   }
 
   andThrow(error, options) {
-    return this._chain((milestone) => {
-      return milestone.throw(error, options);
-    });
+    return this._chain('throw', error, options);
   }
 
   andContinue(options) {
-    return this._chain((milestone) => {
-      return milestone.continue(options);
-    });
+    return this._chain('continue', options);
   }
 
   andCancel(options) {
-    return this._chain((milestone) => {
-      return milestone.cancel(options);
-    });
+    return this._chain('cancel', options);
   }
 
-  _chain(f) {
-    return this.then(f).then(() => undefined);
+  _chain(method, ...params) {
+    return this.then(milestone => milestone[method](...params)).then(() => undefined);
   }
 
   _resolve(milestone) {

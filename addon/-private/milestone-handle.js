@@ -2,7 +2,7 @@ import { Promise } from 'rsvp';
 import { assert } from '@ember/debug';
 import { next } from '@ember/runloop';
 
-export default class Milestone {
+export default class MilestoneHandle {
   constructor(name, coordinator, action, deferred) {
     this.name = name;
     this.resolution = false;

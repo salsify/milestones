@@ -8,6 +8,19 @@ export function activateMilestones(milestones) {
   return new MilestoneCoordinator(milestones);
 }
 
+export function deactivateAllMilestones() {
+  MilestoneCoordinator.deactivateAll();
+}
+
+export function advanceTo(name) {
+  let coordinator = MilestoneCoordinator.forMilestone(name);
+  if (!coordinator) {
+    throw new Error(`Milestone ${name} isn't currently active.`);
+  } else {
+    return coordinator.advanceTo(name);
+  }
+}
+
 export function milestone(name, action) {
   let coordinator = MilestoneCoordinator.forMilestone(name);
   if (coordinator) {
@@ -19,12 +32,18 @@ export function milestone(name, action) {
   }
 }
 
-export function setupMilestones(hooks, milestones) {
+export function setupMilestones(hooks, names, options = {}) {
+  let milestones;
+
   hooks.beforeEach(function() {
-    this.milestones = activateMilestones(milestones);
+    milestones = activateMilestones(names);
+
+    if (options.as) {
+      this[options.as] = milestones;
+    }
   });
 
   hooks.afterEach(function() {
-    this.milestones.deactivateAll();
+    milestones.deactivateAll();
   });
 }
