@@ -1,28 +1,25 @@
 import require from 'require';
-import { test } from 'qunit';
-import { activateMilestones, advanceTo } from 'ember-milestones';
-import moduleForAcceptance from '../../tests/helpers/module-for-acceptance';
+import { test, module } from 'qunit';
+import { setupApplicationTest } from 'ember-qunit';
+import { visit } from '@ember/test-helpers';
+import { setupMilestones, advanceTo } from 'ember-milestones';
 
-moduleForAcceptance('Acceptance | infinite loops', {
-  beforeEach() {
-    this.milestones = activateMilestones(['route:tick#timer']);
-  },
+module('Acceptance | infinite loops', function(hooks) {
+  setupApplicationTest(hooks);
+  setupMilestones(hooks, ['route:tick#timer']);
 
-  afterEach() {
-    this.milestones.deactivateAll();
+  if (require.has('ember-concurrency')) {
+    test('avoiding a hanging test-waiter loop', async function(assert) {
+      await visit('/loop');
+
+      await advanceTo('route:tick#timer').andReturn();
+      assert.equal(this.element.querySelector('[data-value]').innerText, '0');
+
+      await advanceTo('route:tick#timer').andReturn();
+      assert.equal(this.element.querySelector('[data-value]').innerText, '1');
+
+      // Cancel the task to kill the loop
+      await advanceTo('route:tick#timer').andCancel();
+    });
   }
 });
-
-if (require.has('ember-concurrency')) {
-  test('avoiding a hanging test-waiter loop', async function(assert) {
-    await visit('/loop');
-
-    await advanceTo('route:tick#timer').andReturn();
-    assert.equal(find('[data-value]').text(), '0');
-
-    await advanceTo('route:tick#timer').andReturn();
-    assert.equal(find('[data-value]').text(), '1');
-
-    // Because pending milestones don't add a test waiter, the test completes without a fuss
-  });
-}
