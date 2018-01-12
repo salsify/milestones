@@ -1,5 +1,6 @@
 /* eslint-env node */
 module.exports = {
+  useYarn: true,
   scenarios: [
     {
       name: 'ember-lts-2.8',
@@ -74,9 +75,25 @@ module.exports = {
       }
     },
     {
-      name: 'ember-default',
+      name: 'defaults',
       npm: {
         devDependencies: {}
+      }
+    },
+    {
+      name: 'ember-concurrency-release',
+      npm: {
+        devDependencies: {
+          'ember-concurrency': 'latest'
+        }
+      }
+    },
+    {
+      name: 'ember-concurrency-missing',
+      npm: {
+        devDependencies: {
+          'ember-concurrency': null
+        }
       }
     }
   ]

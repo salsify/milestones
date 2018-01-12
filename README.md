@@ -1,3 +1,3 @@
-# [WIP] ember-milestones
+# ember-milestones [![Build Status](https://travis-ci.org/salsify/ember-milestones.svg?branch=master)](https://travis-ci.org/salsify/ember-milestones)
 
-See [#1](https://github.com/salsify/ember-milestones/pull/1) for implementation status.
+WIP fill me out!
