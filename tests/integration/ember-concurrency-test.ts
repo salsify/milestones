@@ -1,10 +1,10 @@
 import EmberObject from '@ember/object';
 import { run } from '@ember/runloop';
-import { advanceTo, milestone, setupMilestones, TestHooks } from 'ember-milestones';
+import { advanceTo, milestone, setupMilestones } from 'ember-milestones';
 import { module, test } from 'qunit';
 import require from 'require';
 
-module('Integration | ember-concurrency interop', function(hooks: TestHooks) {
+module('Integration | ember-concurrency interop', function(hooks) {
   setupMilestones(hooks, ['one', 'two']);
 
   if (require.has('ember-concurrency')) {

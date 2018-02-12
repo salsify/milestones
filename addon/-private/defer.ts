@@ -14,7 +14,7 @@ if (require.has('ember-concurrency')) {
   const { getRunningInstance } = require('ember-concurrency/-task-instance');
   class TaskHost extends EmberObject.extend({
     started: false,
-    child: null as any,
+    realPromise: null as any,
     milestoneTask: taskMacro(function(this: TaskHost, promise: Promise<any>) {
       return {
         next: () => {
@@ -22,7 +22,7 @@ if (require.has('ember-concurrency')) {
             this.started = true;
             return { value: promise, done: false };
           } else {
-            return { value: this.child, done: true };
+            return { value: this.realPromise, done: true };
           }
         },
       };
@@ -40,11 +40,11 @@ if (require.has('ember-concurrency')) {
         dfd.promise.cancel(reason);
       },
       resolve(value: any) {
-        obj.child = value;
+        obj.realPromise = value;
         resolve();
       },
       reject(error: any) {
-        obj.child = rsvpReject(error);
+        obj.realPromise = rsvpReject(error);
         resolve();
       },
     };

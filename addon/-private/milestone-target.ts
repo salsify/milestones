@@ -15,7 +15,7 @@ export default class MilestoneTarget implements IMilestoneTarget {
     public name: string,
   ) {}
 
-  public then<TResult1 = void, TResult2 = never>(
+  public then<TResult1 = MilestoneHandle, TResult2 = never>(
     onfulfilled?: ((value: MilestoneHandle) => TResult1 | PromiseLike<TResult1>) | undefined | null,
     onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null,
   ): Promise<TResult1 | TResult2> {

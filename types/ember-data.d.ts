@@ -2,6 +2,6 @@
 // it should have no bearing on host applications.
 declare module 'ember-data' {
   interface ModelRegistry {
-    foo: any;
+    [key: string]: any;
   }
 }

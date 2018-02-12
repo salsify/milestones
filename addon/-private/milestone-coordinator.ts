@@ -80,7 +80,7 @@ export default class MilestoneCoordinator {
     }
 
     // Playing fast and loose with our casting here under the assumption that
-    // callers of `milestone()` are well behaved.
+    // `MilestoneHandler` will be well-behaved and not stub unexpected return types.
     return deferred.promise as any as T;
   }
 
