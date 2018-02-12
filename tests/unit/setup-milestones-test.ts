@@ -1,6 +1,6 @@
-import { module, test } from 'qunit';
 import { setupMilestones } from 'ember-milestones';
 import { ACTIVE_COORDINATORS } from 'ember-milestones/-private/milestone-coordinator';
+import { module, test } from 'qunit';
 
 module('Unit | setup-milestones', function() {
   module('activating milestones', function(hooks) {
@@ -18,7 +18,7 @@ module('Unit | setup-milestones', function() {
     setupMilestones(hooks, ['one'], { as: 'coordinator' });
 
     test('the coordinator can be referenced', async function(assert) {
-      assert.equal(this.coordinator, ACTIVE_COORDINATORS.one);
+      assert.equal((this as any).coordinator, ACTIVE_COORDINATORS.one);
     });
   });
 });

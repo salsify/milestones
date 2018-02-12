@@ -36,7 +36,7 @@ export interface MilestoneTarget extends PromiseLike<MilestoneHandle> {
    *     await advanceTo('milestone').andReturn(value);
    *     await advanceTo('milestone').then(m => m.return(value));
    */
-  andReturn(value: any, options?: ResolutionOptions): Promise<void>;
+  andReturn(value?: any, options?: ResolutionOptions): Promise<void>;
 
   /**
    * Throw the given error when the milestone is reached. The following two
@@ -85,7 +85,7 @@ export interface MilestoneHandle {
   /**
    * Settle this milestone by resolving its promise with the given value.
    */
-  return(value: any, options?: ResolutionOptions): Promise<void>;
+  return(value?: any, options?: ResolutionOptions): Promise<void>;
 
   /**
    * Settle this milestone by rejecting its promise with the given error.

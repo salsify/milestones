@@ -10,17 +10,12 @@ import {
 export let defer: (label?: string) => CancelableDeferred;
 
 if (require.has('ember-concurrency')) {
-  interface MilestoneTaskHost {
-    started: boolean;
-    child?: any;
-  }
-
   const taskMacro = require('ember-concurrency').task;
   const { getRunningInstance } = require('ember-concurrency/-task-instance');
-  const taskHost = EmberObject.extend({
+  class TaskHost extends EmberObject.extend({
     started: false,
     child: null as any,
-    milestoneTask: taskMacro(function(this: MilestoneTaskHost, promise: Promise<any>) {
+    milestoneTask: taskMacro(function(this: TaskHost, promise: Promise<any>) {
       return {
         next: () => {
           if (!this.started) {
@@ -32,11 +27,11 @@ if (require.has('ember-concurrency')) {
         },
       };
     }),
-  });
+  }) {}
 
   defer = function(label) {
     let { resolve, promise } = rsvpDefer(label);
-    let obj = taskHost.create();
+    let obj = TaskHost.create();
     let task = obj.get('milestoneTask');
     let dfd = {
       promise: run(() => (getRunningInstance() ? task.linked() : task).perform(promise)),

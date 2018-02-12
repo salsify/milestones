@@ -3,6 +3,7 @@
 /dist
 /tests
 /tmp
+/types
 **/.gitkeep
 .bowerrc
 .editorconfig

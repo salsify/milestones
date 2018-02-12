@@ -11,8 +11,9 @@
     "interface-name": false,
     "only-arrow-functions": false,
     "no-unused-variable": true,
-    "variable-name": [true, "allow-leading-underscore"],
-    "no-var-requires": false
+    "variable-name": [true, "allow-leading-underscore", "allow-pascal-case"],
+    "no-var-requires": false,
+    "no-shadowed-variable": false
   },
   "rulesDirectory": []
 }

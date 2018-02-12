@@ -1,5 +1,5 @@
-import { module, test } from 'qunit';
 import MilestoneCoordinator, { ACTIVE_COORDINATORS } from 'ember-milestones/-private/milestone-coordinator';
+import { module, test } from 'qunit';
 
 module('Unit | milestone-coordinator', function() {
   test('deactivating a single coordinator', function(assert) {

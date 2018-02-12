@@ -23,7 +23,7 @@ export default class MilestoneTarget implements IMilestoneTarget {
     return this._coordinatorDeferred.promise.then(onfulfilled, onrejected);
   }
 
-  public andReturn(value: any, options?: ResolutionOptions): Promise<void> {
+  public andReturn(value?: any, options?: ResolutionOptions): Promise<void> {
     return this.then((milestone) => milestone.return(value, options));
   }
 

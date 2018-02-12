@@ -34,7 +34,7 @@ export default class MilestoneHandle implements IMilestoneHandle {
     });
   }
 
-  public return(value: any, options?: ResolutionOptions): Promise<void> {
+  public return(value?: any, options?: ResolutionOptions): Promise<void> {
     return this._complete('return', options, () => {
       this._deferred.resolve(value);
     });

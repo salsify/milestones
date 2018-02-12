@@ -18,7 +18,8 @@
         "tests/*"
       ],
       "dummy/*": [
-        "tests/dummy/app/*"
+        "tests/dummy/app/*",
+        "types/dummy/*"
       ],
       "ember-milestones": [
         "addon"
