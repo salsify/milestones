@@ -1,12 +1,30 @@
 import { assert } from '@ember/debug';
+import { CancelableDeferred } from 'ember-milestones/interfaces';
 import { defer } from './defer';
-import MilestoneTarget from './milestone-target';
 import MilestoneHandle from './milestone-handle';
+import MilestoneTarget from './milestone-target';
 
-export const ACTIVE_COORDINATORS = Object.create(null);
+export const ACTIVE_COORDINATORS: { [key: string]: MilestoneCoordinator } = Object.create(null);
 
 export default class MilestoneCoordinator {
-  constructor(names) {
+  public static forMilestone(name: string): MilestoneCoordinator | undefined {
+    return ACTIVE_COORDINATORS[name];
+  }
+
+  public static deactivateAll(): void {
+    let keys = Object.keys(ACTIVE_COORDINATORS);
+    for (; keys.length; keys = Object.keys(ACTIVE_COORDINATORS)) {
+      ACTIVE_COORDINATORS[keys[0]].deactivateAll();
+    }
+  }
+
+  public names: string[];
+
+  private _pendingActions: { [key: string]: { action: () => any, deferred: CancelableDeferred } };
+  private _nextTarget: MilestoneTarget | null;
+  private _pausedMilestone: MilestoneHandle | null;
+
+  constructor(names: string[]) {
     names.forEach((name) => {
       assert(`Milestone '${name}' is already active.`, !ACTIVE_COORDINATORS[name]);
       ACTIVE_COORDINATORS[name] = this;
@@ -18,18 +36,7 @@ export default class MilestoneCoordinator {
     this._pausedMilestone = null;
   }
 
-  static deactivateAll() {
-    let keys = Object.keys(ACTIVE_COORDINATORS);
-    for (; keys.length; keys = Object.keys(ACTIVE_COORDINATORS)) {
-      ACTIVE_COORDINATORS[keys[0]].deactivateAll();
-    }
-  }
-
-  static forMilestone(name) {
-    return ACTIVE_COORDINATORS[name];
-  }
-
-  advanceTo(name) {
+  public advanceTo(name: string): MilestoneTarget {
     assert(`Milestone '${name}' is not active.`, this.names.indexOf(name) !== -1);
     let target = new MilestoneTarget(name);
 
@@ -45,7 +52,7 @@ export default class MilestoneCoordinator {
     return target;
   }
 
-  deactivateAll() {
+  public deactivateAll() {
     this._continueAll();
 
     this.names.forEach((name) => {
@@ -56,7 +63,7 @@ export default class MilestoneCoordinator {
   }
 
   // Called from milestone()
-  _milestoneReached(name, action) {
+  public _milestoneReached<T extends PromiseLike<any>>(name: string, action: () => T): T {
     let target = this._nextTarget;
 
     // If we're already targeting another milestone, just pass through
@@ -71,26 +78,29 @@ export default class MilestoneCoordinator {
       assert(`Milestone '${name}' is already pending.`, !this._pendingActions[name]);
       this._pendingActions[name] = { deferred, action };
     }
-    return deferred.promise;
+
+    // Playing fast and loose with our casting here under the assumption that
+    // `MilestoneHandler` will be well-behaved and not stub unexpected return types.
+    return deferred.promise as any as T;
   }
 
-  _targetReached(target, deferred, action) {
+  // Called by MilestoneHandle instances
+  public _milestoneCompleted(milestone: MilestoneHandle) {
+    if (this._pausedMilestone === milestone) {
+      this._pausedMilestone = null;
+    }
+  }
+
+  private _targetReached(target: MilestoneTarget, deferred: CancelableDeferred, action: () => any) {
     this._nextTarget = null;
     this._pausedMilestone = new MilestoneHandle(target.name, this, action, deferred);
 
     target._resolve(this._pausedMilestone);
   }
 
-  // Called by Milestone instances
-  _milestoneCompleted(milestone) {
-    if (this._pausedMilestone === milestone) {
-      this._pausedMilestone = null;
-    }
-  }
-
-  _continueAll({ except } = {}) {
+  private _continueAll({ except }: { except?: string } = {}) {
     let paused = this._pausedMilestone;
-    if (paused && paused.name !== except && !paused.settled) {
+    if (paused && paused.name !== except) {
       paused.continue();
     }
 

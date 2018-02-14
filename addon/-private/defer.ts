@@ -1,57 +1,59 @@
-import require from 'require';
 import EmberObject from '@ember/object';
 import { run } from '@ember/runloop';
+import { CancelableDeferred } from 'ember-milestones/interfaces';
+import require from 'require';
 import {
   defer as rsvpDefer,
-  reject as rsvpReject
+  reject as rsvpReject,
 } from 'rsvp';
 
-export let defer;
+export let defer: (label?: string) => CancelableDeferred;
 
 if (require.has('ember-concurrency')) {
-  const { task } = require('ember-concurrency');
+  const taskMacro = require('ember-concurrency').task;
   const { getRunningInstance } = require('ember-concurrency/-task-instance');
-  const Obj = EmberObject.extend({
+  class TaskHost extends EmberObject.extend({
     started: false,
-    milestoneTask: task(function(promise) {
+    realPromise: null as any,
+    milestoneTask: taskMacro(function(this: TaskHost, promise: Promise<any>) {
       return {
         next: () => {
           if (!this.started) {
             this.started = true;
             return { value: promise, done: false };
           } else {
-            return { value: this.child, done: true };
+            return { value: this.realPromise, done: true };
           }
-        }
+        },
       };
-    })
-  });
+    }),
+  }) {}
 
   defer = function(label) {
     let { resolve, promise } = rsvpDefer(label);
-    let obj = Obj.create();
+    let obj = TaskHost.create();
     let task = obj.get('milestoneTask');
     let dfd = {
       promise: run(() => (getRunningInstance() ? task.linked() : task).perform(promise)),
-      cancel(reason) {
+      cancel(reason: any) {
         resolve();
         dfd.promise.cancel(reason);
       },
-      resolve(value) {
-        obj.child = value;
+      resolve(value: any) {
+        obj.realPromise = value;
         resolve();
       },
-      reject(error) {
-        obj.child = rsvpReject(error);
+      reject(error: any) {
+        obj.realPromise = rsvpReject(error);
         resolve();
-      }
+      },
     };
 
     return dfd;
   };
 } else {
   defer = function(label) {
-    let dfd = rsvpDefer(label);
+    let dfd: any = rsvpDefer(label);
 
     dfd.cancel = () => {
       throw new Error(`Milestones aren't cancelable unless ember-concurrency is installed.`);

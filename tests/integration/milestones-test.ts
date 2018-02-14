@@ -1,22 +1,25 @@
+import { advanceTo, deactivateAllMilestones, milestone, setupMilestones } from 'ember-milestones';
 import { module, test } from 'qunit';
-import { milestone, setupMilestones, advanceTo, deactivateAllMilestones } from 'ember-milestones';
 
 module('Integration | milestones', function(hooks) {
+  let program: () => Promise<{ first: number, second: number }>;
+  let location: string;
+
   hooks.beforeEach(function() {
-    this.program = async () => {
-      this.location = 'before';
-      let first = await milestone('one', () => { this.location = 'one-started'; return 1; });
-      this.location = 'one-completed';
-      let second = await milestone('two', () => { this.location = 'two-started'; return 2; });
-      this.location = 'two-completed';
+    program = async () => {
+      location = 'before';
+      let first = await milestone('one', async () => { location = 'one-started'; return 1; });
+      location = 'one-completed';
+      let second = await milestone('two', async () => { location = 'two-started'; return 2; });
+      location = 'two-completed';
       return { first, second };
     };
   });
 
   module('with no milestones active', function() {
     test('milestones are inert', async function(assert) {
-      let { first, second } = await this.program();
-      assert.equal(this.location, 'two-completed');
+      let { first, second } = await program();
+      assert.equal(location, 'two-completed');
       assert.equal(first, 1);
       assert.equal(second, 2);
     });
@@ -26,26 +29,26 @@ module('Integration | milestones', function(hooks) {
     setupMilestones(hooks, ['one', 'two']);
 
     test('skipping a milestone', async function(assert) {
-      let programPromise = this.program();
+      let programPromise = program();
 
       let two = await advanceTo('two');
-      assert.equal(this.location, 'one-completed');
+      assert.equal(location, 'one-completed');
 
       two.continue();
-      assert.equal(this.location, 'two-started');
+      assert.equal(location, 'two-started');
 
       let { first, second } = await programPromise;
-      assert.equal(this.location, 'two-completed');
+      assert.equal(location, 'two-completed');
       assert.equal(first, 1);
       assert.equal(second, 2);
     });
 
     test('advancing to an already-waiting milestone', async function(assert) {
-      let programPromise = this.program();
-      assert.equal(this.location, 'before');
+      let programPromise = program();
+      assert.equal(location, 'before');
 
       await advanceTo('one');
-      assert.equal(this.location, 'before');
+      assert.equal(location, 'before');
 
       await advanceTo('two').andContinue();
 
@@ -57,21 +60,21 @@ module('Integration | milestones', function(hooks) {
     test('advancing to a not-yet-waiting milestone', async function(assert) {
       let advancePromise = advanceTo('two');
 
-      this.program();
-      assert.equal(this.location, 'one-started');
+      program();
+      assert.equal(location, 'one-started');
 
       await advancePromise;
-      assert.equal(this.location, 'one-completed');
+      assert.equal(location, 'one-completed');
     });
 
     test('advancing while paused at a previous milestone', async function(assert) {
-      let programPromise = this.program();
+      let programPromise = program();
 
       await advanceTo('one');
-      assert.equal(this.location, 'before');
+      assert.equal(location, 'before');
 
       let two = await advanceTo('two');
-      assert.equal(this.location, 'one-completed');
+      assert.equal(location, 'one-completed');
 
       two.continue();
 
@@ -79,11 +82,11 @@ module('Integration | milestones', function(hooks) {
     });
 
     test('stubbing a return value', async function(assert) {
-      let programPromise = this.program();
+      let programPromise = program();
 
       await advanceTo('one').andReturn(111);
       await advanceTo('two').andReturn(222);
-      assert.equal(this.location, 'two-completed');
+      assert.equal(location, 'two-completed');
 
       let { first, second } = await programPromise;
       assert.equal(first, 111);
@@ -94,7 +97,7 @@ module('Integration | milestones', function(hooks) {
       let boom = new Error('boom!');
       let program = async () => {
         try {
-          await milestone('one', () => 'bad');
+          await milestone('one', async () => 'bad');
         } catch (error) {
           return error;
         }
@@ -105,85 +108,85 @@ module('Integration | milestones', function(hooks) {
     });
 
     test('stepping through each location', async function(assert) {
-      let programPromise = this.program();
+      let programPromise = program();
 
       let one = await advanceTo('one');
-      assert.equal(this.location, 'before');
+      assert.equal(location, 'before');
 
       one.continue();
-      assert.equal(this.location, 'one-started');
+      assert.equal(location, 'one-started');
 
       let two = await advanceTo('two');
-      assert.equal(this.location, 'one-completed');
+      assert.equal(location, 'one-completed');
 
       two.continue();
-      assert.equal(this.location, 'two-started');
+      assert.equal(location, 'two-started');
 
       await programPromise;
-      assert.equal(this.location, 'two-completed');
+      assert.equal(location, 'two-completed');
     });
 
     test('nested milestones', async function(assert) {
       let program = async () => {
-        this.location = 'before-out';
+        location = 'before-out';
         let result = await milestone('one', async () => {
-          this.location = 'before-in';
+          location = 'before-in';
           let inner = await milestone('two', async () => {
-            this.location = 'in';
+            location = 'in';
             return 'ok';
           });
-          this.location = 'after-in';
+          location = 'after-in';
           return inner;
         });
-        this.location = 'after-out';
+        location = 'after-out';
         return result;
       };
 
       let programPromise = program();
 
       let one = await advanceTo('one');
-      assert.equal(this.location, 'before-out');
+      assert.equal(location, 'before-out');
 
       let two = await advanceTo('two');
-      assert.equal(this.location, 'before-in');
+      assert.equal(location, 'before-in');
 
       let twoCompletion = two.continue({ immediate: true });
-      assert.equal(this.location, 'in');
+      assert.equal(location, 'in');
 
       await twoCompletion;
-      assert.equal(this.location, 'after-in');
+      assert.equal(location, 'after-in');
 
       await one.continue();
-      assert.equal(this.location, 'after-out');
+      assert.equal(location, 'after-out');
 
       assert.equal(await programPromise, 'ok');
     });
 
     test('immediate vs deferred continuation', async function(assert) {
       let program = async () => {
-        this.location = 'before';
+        location = 'before';
 
         let result = await milestone('one', async () => 'ok');
 
-        this.location = 'between';
+        location = 'between';
 
         await null;
 
-        this.location = 'after';
+        location = 'after';
 
         return result;
       };
 
       let programPromise = program();
-      assert.equal(this.location, 'before');
+      assert.equal(location, 'before');
       await advanceTo('one').andContinue({ immediate: true });
-      assert.equal(this.location, 'between');
+      assert.equal(location, 'between');
       assert.equal(await programPromise, 'ok');
 
       programPromise = program();
-      assert.equal(this.location, 'before');
+      assert.equal(location, 'before');
       await advanceTo('one').andContinue();
-      assert.equal(this.location, 'after');
+      assert.equal(location, 'after');
       assert.equal(await programPromise, 'ok');
     });
   });
@@ -193,12 +196,12 @@ module('Integration | milestones', function(hooks) {
     setupMilestones(hooks, ['three', 'four']);
 
     test('they can be controlled independently', async function(assert) {
-      let state = {};
-      let program = async (key, milestones) => {
+      let state: { [key: string]: any } = {};
+      let program = async (key: string, milestones: string[]) => {
         state[key] = 'before';
-        let first = await milestone(milestones[0], () => 1);
+        let first = await milestone(milestones[0], async () => 1);
         state[key] = 'between';
-        let second = await milestone(milestones[1], () => 2);
+        let second = await milestone(milestones[1], async () => 2);
         state[key] = 'after';
         return first + second;
       };
@@ -229,9 +232,9 @@ module('Integration | milestones', function(hooks) {
     });
 
     test('all active milestones can be deactivated', async function(assert) {
-      let program = async (milestones) => {
-        let first = await milestone(milestones[0], () => 2);
-        let second = await milestone(milestones[1], () => 3);
+      let program = async (milestones: string[]) => {
+        let first = await milestone(milestones[0], async () => 2);
+        let second = await milestone(milestones[1], async () => 3);
         return first * second;
       };
 
