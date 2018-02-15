@@ -86,6 +86,10 @@ module.exports = {
           'ember-concurrency': null
         }
       }
-    }
+    },
+    {
+      name: 'node',
+      command: 'yarn test:node',
+    },
   ]
 };
