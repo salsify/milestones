@@ -1,5 +1,5 @@
 import { assert } from '@ember/debug';
-import { next } from '@ember/runloop';
+import { join, next } from '@ember/runloop';
 import { Promise } from 'rsvp';
 
 import MilestoneCoordinator from 'ember-milestones/-private/milestone-coordinator';
@@ -53,7 +53,7 @@ export default class MilestoneHandle implements IMilestoneHandle {
       this.resolution = resolution;
       this._coordinator._milestoneCompleted(this);
 
-      finalizer();
+      join(finalizer);
     }
 
     return new Promise((resolve) => {
