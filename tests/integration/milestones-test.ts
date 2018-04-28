@@ -1,11 +1,14 @@
+import { schedule } from '@ember/runloop';
 import { advanceTo, deactivateAllMilestones, milestone, setupMilestones } from 'ember-milestones';
 import { module, test } from 'qunit';
+import { resolve } from 'rsvp';
 
 module('Integration | milestones', function(hooks) {
   let program: () => Promise<{ first: number, second: number }>;
   let location: string;
 
   hooks.beforeEach(function() {
+    location = 'unstarted';
     program = async () => {
       location = 'before';
       let first = await milestone('one', async () => { location = 'one-started'; return 1; });
@@ -60,11 +63,14 @@ module('Integration | milestones', function(hooks) {
     test('advancing to a not-yet-waiting milestone', async function(assert) {
       let advancePromise = advanceTo('two');
 
-      program();
+      let programPromise = program();
       assert.equal(location, 'one-started');
 
       await advancePromise;
       assert.equal(location, 'one-completed');
+
+      deactivateAllMilestones();
+      await programPromise;
     });
 
     test('advancing while paused at a previous milestone', async function(assert) {
@@ -79,6 +85,20 @@ module('Integration | milestones', function(hooks) {
       two.continue();
 
       assert.deepEqual(await programPromise, { first: 1, second: 2 });
+    });
+
+    test('continuing occurs in a runloop', async function(assert) {
+      let program = async () => {
+        let run = false;
+        await milestone('one', async () => schedule('actions', () => run = true));
+        return run;
+      };
+
+      let programPromise = program();
+      let handle = await advanceTo('one');
+
+      handle.continue();
+      assert.deepEqual(await programPromise, true);
     });
 
     test('stubbing a return value', async function(assert) {
@@ -170,7 +190,7 @@ module('Integration | milestones', function(hooks) {
 
         location = 'between';
 
-        await null;
+        await resolve();
 
         location = 'after';
 
