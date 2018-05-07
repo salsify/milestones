@@ -4,13 +4,19 @@
     "allowJs": true,
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
-    "noImplicitThis": true,
     "noImplicitAny": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
     "strictNullChecks": true,
     "strictPropertyInitialization": true,
-    "noEmitOnError": false,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noEmitOnError": true,
     "noEmit": true,
-    "sourceMap": true,
+    "inlineSourceMap": true,
+    "inlineSources": true,
     "baseUrl": ".",
     "module": "es6",
     "paths": {
@@ -19,7 +25,7 @@
       ],
       "dummy/*": [
         "tests/dummy/app/*",
-        "types/dummy/*"
+        "app/*"
       ],
       "ember-milestones": [
         "addon"
@@ -33,7 +39,9 @@
     }
   },
   "include": [
+    "app",
     "addon",
-    "tests"
+    "tests",
+    "types"
   ]
 }
