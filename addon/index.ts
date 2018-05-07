@@ -64,14 +64,17 @@ export function advanceTo(name: string): MilestoneTarget {
  * When not activated, code wrapped in a milestone is immediately invoked as though
  * the wrapper weren't there at all.
  */
-export function milestone<T extends PromiseLike<any>>(name: string, callback: () => T): T {
+export function milestone<T extends PromiseLike<any>>(name: string, callback: () => T): T;
+export function milestone(name: string): PromiseLike<void>;
+export function milestone(name: string, callback?: () => any): PromiseLike<any> {
   let coordinator = CoordinatorImpl.forMilestone(name);
+  let action = callback || (() => Promise.resolve());
   if (coordinator) {
     debugActive('reached active milestone %s', name);
-    return coordinator._milestoneReached(name, callback);
+    return coordinator._milestoneReached(name, action);
   } else {
     debugInactive('skipping inactive milestone %s', name);
-    return callback();
+    return action();
   }
 }
 

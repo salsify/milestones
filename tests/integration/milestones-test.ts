@@ -20,11 +20,24 @@ module('Integration | milestones', function(hooks) {
   });
 
   module('with no milestones active', function() {
-    test('milestones are inert', async function(assert) {
+    test('milestones with callbacks are inert', async function(assert) {
       let { first, second } = await program();
       assert.equal(location, 'two-completed');
       assert.equal(first, 1);
       assert.equal(second, 2);
+    });
+
+    test('milestones without callbacks are inert', async function(assert) {
+      let program = async () => {
+        let first = await milestone('one');
+        let second = await milestone('two');
+        return { first, second };
+      };
+
+      assert.deepEqual(await program(), {
+        first: undefined,
+        second: undefined,
+      });
     });
   });
 
@@ -125,6 +138,19 @@ module('Integration | milestones', function(hooks) {
 
       advanceTo('one').andThrow(boom);
       assert.equal(await program(), boom);
+    });
+
+    test('with no callback', async function(assert) {
+      let program = async () => {
+        let first = await milestone('one');
+        let second = await milestone('two');
+        return { first, second };
+      };
+
+      let programPromise = program();
+      await advanceTo('one').andContinue();
+      await advanceTo('two').andContinue();
+      assert.deepEqual(await programPromise, { first: undefined, second: undefined });
     });
 
     test('stepping through each location', async function(assert) {
