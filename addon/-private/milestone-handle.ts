@@ -7,6 +7,7 @@ import MilestoneCoordinator from 'ember-milestones/-private/milestone-coordinato
 import {
   CancelableDeferred,
   MilestoneHandle as IMilestoneHandle,
+  MilestoneKey,
   ResolutionOptions,
 } from 'ember-milestones';
 
@@ -17,7 +18,7 @@ export default class MilestoneHandle implements IMilestoneHandle {
   private resolution: Resolution | null = null;
 
   constructor(
-    public name: string,
+    public name: MilestoneKey,
     private _coordinator: MilestoneCoordinator,
     private _action: () => any,
     private _deferred: CancelableDeferred,
@@ -49,7 +50,10 @@ export default class MilestoneHandle implements IMilestoneHandle {
   }
 
   private _complete(resolution: Resolution, options: ResolutionOptions = {}, finalizer: () => void): Promise<void> {
-    assert(`Multiple resolutions for milestone ${this.name}`, !this.resolution || this.resolution === resolution);
+    assert(
+      `Multiple resolutions for milestone '${this.name.toString()}'`,
+      !this.resolution || this.resolution === resolution,
+    );
 
     if (!this.resolution) {
       this.resolution = resolution;
