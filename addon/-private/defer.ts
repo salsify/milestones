@@ -1,12 +1,13 @@
 import EmberObject from '@ember/object';
 import { run } from '@ember/runloop';
-import { CancelableDeferred } from 'ember-milestones/interfaces';
+import { CancelableDeferred } from 'ember-milestones';
 import require from 'require';
 import {
   defer as rsvpDefer,
   reject as rsvpReject,
 } from 'rsvp';
 
+/** @hide */
 export let defer: (label?: string) => CancelableDeferred;
 
 if (require.has('ember-concurrency')) {
