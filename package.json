@@ -24,10 +24,11 @@
     "test:all": "ember try:each"
   },
   "dependencies": {
-    "ember-cli-babel": "^6.12.0",
+    "ember-cli-babel": "^7.1.0",
     "ember-debug-logger": "^1.1.0"
   },
   "devDependencies": {
+    "@babel/core": "^7.0.0",
     "@types/ember": "^2.8.22",
     "@types/ember-qunit": "^3.0.2",
     "@types/ember-test-helpers": "^0.7.1",
