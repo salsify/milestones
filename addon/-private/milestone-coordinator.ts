@@ -1,12 +1,15 @@
 import { assert } from '@ember/debug';
-import { CancelableDeferred } from 'ember-milestones/interfaces';
+import { CancelableDeferred } from 'ember-milestones';
+import { MilestoneCoordinator as IMilestoneCoordinator } from 'ember-milestones';
 import { defer } from './defer';
 import MilestoneHandle from './milestone-handle';
 import MilestoneTarget from './milestone-target';
 
+/** @hide */
 export const ACTIVE_COORDINATORS: { [key: string]: MilestoneCoordinator } = Object.create(null);
 
-export default class MilestoneCoordinator {
+/** @hide */
+export default class MilestoneCoordinator implements IMilestoneCoordinator {
   public static forMilestone(name: string): MilestoneCoordinator | undefined {
     return ACTIVE_COORDINATORS[name];
   }

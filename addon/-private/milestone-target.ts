@@ -3,11 +3,12 @@ import {
   MilestoneHandle,
   MilestoneTarget as IMilestoneTarget,
   ResolutionOptions,
-} from 'ember-milestones/interfaces';
+} from 'ember-milestones';
 import RSVP, { defer } from 'rsvp';
 
 const debug = logger('ember-milestones:target');
 
+/** @hide */
 export default class MilestoneTarget implements IMilestoneTarget {
   private _coordinatorDeferred: RSVP.Deferred<MilestoneHandle> = defer();
 

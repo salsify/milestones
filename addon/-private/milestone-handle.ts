@@ -3,14 +3,16 @@ import { next, run } from '@ember/runloop';
 import { Promise } from 'rsvp';
 
 import MilestoneCoordinator from 'ember-milestones/-private/milestone-coordinator';
+
 import {
   CancelableDeferred,
   MilestoneHandle as IMilestoneHandle,
   ResolutionOptions,
-} from 'ember-milestones/interfaces';
+} from 'ember-milestones';
 
 type Resolution = 'continue' | 'throw' | 'return' | 'cancel';
 
+/** @hide */
 export default class MilestoneHandle implements IMilestoneHandle {
   private resolution: Resolution | null = null;
 
