@@ -1,6 +1,7 @@
 import logger from 'debug';
 import {
   MilestoneHandle,
+  MilestoneKey,
   MilestoneTarget as IMilestoneTarget,
   ResolutionOptions,
 } from 'ember-milestones';
@@ -13,7 +14,7 @@ export default class MilestoneTarget implements IMilestoneTarget {
   private _coordinatorDeferred: RSVP.Deferred<MilestoneHandle> = defer();
 
   constructor(
-    public name: string,
+    public name: MilestoneKey,
   ) {}
 
   public then<TResult1 = MilestoneHandle, TResult2 = never>(

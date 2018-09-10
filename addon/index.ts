@@ -11,7 +11,7 @@ const debugInactive = logger('ember-milestones:inactive');
  * Inactive milestones will pass through to their given callbacks as though the
  * milestone wrapper weren't present at all...
  */
-export function activateMilestones(milestones: string[]): MilestoneCoordinator {
+export function activateMilestones(milestones: MilestoneKey[]): MilestoneCoordinator {
   return new CoordinatorImpl(milestones);
 }
 
@@ -38,10 +38,10 @@ export function deactivateAllMilestones(): void {
  *
  *     await advanceTo('my-component#poller').andContinue();
  */
-export function advanceTo(name: string): MilestoneTarget {
+export function advanceTo(name: MilestoneKey): MilestoneTarget {
   let coordinator = CoordinatorImpl.forMilestone(name);
   if (!coordinator) {
-    throw new Error(`Milestone ${name} isn't currently active.`);
+    throw new Error(`Milestone ${name.toString()} isn't currently active.`);
   } else {
     return coordinator.advanceTo(name);
   }
@@ -55,9 +55,9 @@ export function advanceTo(name: string): MilestoneTarget {
  * When not activated, code wrapped in a milestone is immediately invoked as though
  * the wrapper weren't there at all.
  */
-export function milestone<T extends PromiseLike<any>>(name: string, callback: () => T): T;
-export function milestone(name: string): PromiseLike<void>;
-export function milestone(name: string, callback?: () => any): PromiseLike<any> {
+export function milestone<T extends PromiseLike<any>>(name: MilestoneKey, callback: () => T): T;
+export function milestone(name: MilestoneKey): PromiseLike<void>;
+export function milestone(name: MilestoneKey, callback?: () => any): PromiseLike<any> {
   let coordinator = CoordinatorImpl.forMilestone(name);
   let action = callback || (() => Promise.resolve());
   if (coordinator) {
@@ -87,7 +87,7 @@ export function milestone(name: string, callback?: () => any): PromiseLike<any> 
  * In most cases, using the importable `advanceTo` should mean you won't need to
  * use the `as` parameter.
  */
-export function setupMilestones(hooks: TestHooks, names: string[], options: MilestoneTestOptions = {}) {
+export function setupMilestones(hooks: TestHooks, names: MilestoneKey[], options: MilestoneTestOptions = {}) {
   let milestones: MilestoneCoordinator;
 
   hooks.beforeEach(function(this: any) {
@@ -104,6 +104,11 @@ export function setupMilestones(hooks: TestHooks, names: string[], options: Mile
 }
 
 /**
+ * A valid key for a milestone, either a string or a symbol.
+ */
+export type MilestoneKey = string | symbol;
+
+/**
  * A `MilestoneCoordinator` is the result of an `activateMilestones` call,
  * which provides the ability to interact with the milestones you've activated
  * and subsequently deactivate them.
@@ -117,7 +122,7 @@ export interface MilestoneCoordinator {
    * Advance until the given milestone is reached, continuing past any others
    * that are active for this coordinator in the meantime.
    */
-  advanceTo(name: string): MilestoneTarget;
+  advanceTo(name: MilestoneKey): MilestoneTarget;
 
   /**
    * Deactivate all milestones associated with this coordinator.
