@@ -1,5 +1,4 @@
 import EmberObject from '@ember/object';
-import { run } from '@ember/runloop';
 import { CancelableDeferred } from 'ember-milestones';
 import require from 'require';
 import {
@@ -35,7 +34,7 @@ if (require.has('ember-concurrency')) {
     let obj = TaskHost.create();
     let task = obj.get('milestoneTask');
     let dfd = {
-      promise: run(() => (getRunningInstance() ? task.linked() : task).perform(promise)),
+      promise: (getRunningInstance() ? task.linked() : task).perform(promise),
       cancel(reason: any) {
         resolve();
         dfd.promise.cancel(reason);
