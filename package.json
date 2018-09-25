@@ -1,6 +1,6 @@
 {
   "name": "ember-milestones",
-  "version": "1.0.0-alpha.7",
+  "version": "1.0.0-alpha.8",
   "description": "Tools for finding your way through async code",
   "keywords": [
     "ember-addon"
