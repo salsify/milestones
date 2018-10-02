@@ -25,7 +25,7 @@
   },
   "dependencies": {
     "ember-cli-babel": "^7.1.0",
-    "ember-debug-logger": "^1.1.0"
+    "ember-debug-logger": "^1.1.0 || ^2.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0",
