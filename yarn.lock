@@ -3694,7 +3694,7 @@ ember-concurrency@^0.8.19:
     ember-cli-babel "^6.8.2"
     ember-maybe-import-regenerator "^0.1.5"
 
-"ember-debug-logger@^1.1.0 || ^2.0.0":
+ember-debug-logger@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/ember-debug-logger/-/ember-debug-logger-2.0.0.tgz#d45a99471eb4b0bcb91089d5076414012458d2b8"
   integrity sha512-XYYdVHEurKMoX5qiod2bZas+Y2RvryX22lR/2sAjp8MIQdVgTYifpHbcE3PJDuUHMA75IBBr0a6LnaALhbhJ0w==
