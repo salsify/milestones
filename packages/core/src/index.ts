@@ -245,24 +245,31 @@ export interface ResolutionOptions {
  * for calling `activateMilestones` in a `beforeEach()` block and `deactivateAll()` in
  * an `afterEach` block.
  */
-export function setupMilestones(keys: MilestoneKey[]): void;
-export function setupMilestones(hooks: TestHooks, keys: MilestoneKey[]): void;
-export function setupMilestones(...params: [MilestoneKey[]] | [TestHooks, MilestoneKey[]]): void {
+export function setupMilestones(keys: MilestoneKey[], options?: ActivationOptions): void;
+export function setupMilestones(hooks: TestHooks, keys: MilestoneKey[], options?: ActivationOptions): void;
+export function setupMilestones(
+  hooksOrKeys: MilestoneKey[] | TestHooks,
+  keysOrOptions: MilestoneKey[] | ActivationOptions | undefined,
+  maybeOptions?: ActivationOptions,
+): void {
   let milestones: MilestoneCoordinator;
   let keys: MilestoneKey[];
   let hooks: TestHooks;
+  let options: ActivationOptions | undefined;
 
-  if (params.length === 1) {
+  if (Array.isArray(hooksOrKeys)) {
     // @ts-ignore
     hooks = { beforeEach, afterEach };
-    keys = params[0];
+    keys = hooksOrKeys as MilestoneKey[];
+    options = keysOrOptions as ActivationOptions | undefined;
   } else {
-    hooks = params[0];
-    keys = params[1];
+    hooks = hooksOrKeys as TestHooks;
+    keys = keysOrOptions as MilestoneKey[];
+    options = maybeOptions;
   }
 
   hooks.beforeEach(function() {
-    milestones = activateMilestones(keys);
+    milestones = activateMilestones(keys, options);
   });
 
   hooks.afterEach(function() {
