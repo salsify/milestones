@@ -45,7 +45,7 @@ describe('System Hooks', () => {
     });
   });
 
-  describe('wrap', () => {
+  describe('run', () => {
     let isWrapped = false;
     beforeEach(() => {
       isWrapped = false;

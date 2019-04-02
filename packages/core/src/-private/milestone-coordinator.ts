@@ -11,50 +11,60 @@ export const ACTIVE_COORDINATORS: Record<string, MilestoneCoordinator> = getOrIn
 
 /** @hide */
 export default class MilestoneCoordinator implements CoordinatorInterface {
-  public static forMilestone(name: MilestoneKey): MilestoneCoordinator | undefined {
-    return ACTIVE_COORDINATORS[indexableKey(name)];
+  public static forKey(key: MilestoneKey): MilestoneCoordinator | undefined {
+    return ACTIVE_COORDINATORS[indexableKey(key)];
+  }
+
+  public static forMilestone(id: MilestoneKey, tags: MilestoneKey[]): MilestoneCoordinator | undefined {
+    let keys = [id].concat(tags);
+    for (let key of keys) {
+      let coordinator = this.forKey(key);
+      if (coordinator) {
+        return coordinator;
+      }
+    }
+    return undefined;
   }
 
   public static deactivateAll(): void {
     for (let key of allKeys(ACTIVE_COORDINATORS)) {
-      let coordinator = this.forMilestone(key);
+      let coordinator = this.forKey(key);
       if (coordinator) {
         coordinator.deactivateAll();
       }
     }
   }
 
-  public names: MilestoneKey[];
+  public keys: MilestoneKey[];
 
   private _nextTarget: MilestoneTarget | null;
   private _pausedMilestone: MilestoneHandle | null;
-  private _pendingActions: {
-    [key: string]: { action: () => unknown; deferred: Deferred<unknown> };
-  };
+  private _pendingActions: Record<MilestoneKey, PendingAction>;
 
-  public constructor(names: MilestoneKey[]) {
-    names.forEach(name => {
-      assert(!MilestoneCoordinator.forMilestone(name), `Milestone '${name.toString()}' is already active.`);
-      ACTIVE_COORDINATORS[indexableKey(name)] = this;
+  public constructor(keys: MilestoneKey[]) {
+    keys.forEach(key => {
+      assert(!MilestoneCoordinator.forKey(key), `Milestone '${key.toString()}' is already active.`);
+      ACTIVE_COORDINATORS[indexableKey(key)] = this;
     });
 
-    this.names = names;
+    this.keys = keys;
     this._pendingActions = Object.create(null);
     this._nextTarget = null;
     this._pausedMilestone = null;
   }
 
-  public advanceTo(name: MilestoneKey): MilestoneTarget {
-    assert(this.names.indexOf(name) !== -1, `Milestone '${name.toString()}' is not active.`);
-    let target = new MilestoneTarget(name);
+  public advanceTo(key: MilestoneKey): MilestoneTarget {
+    assert(this.keys.indexOf(key) !== -1, `Milestone '${key.toString()}' is not active.`);
+    assert(!this._nextTarget, `Already attempting to advance to ${this._nextTarget} in this coordinator.`);
 
+    let target = new MilestoneTarget(key);
     this._nextTarget = target;
-    this._continueAll({ except: name });
+    this._continueAll({ except: key });
 
-    let pending = this._pendingActions[indexableKey(name)];
+    let pending = this._getPendingAction(key);
     if (pending) {
-      delete this._pendingActions[indexableKey(name)];
-      this._targetReached(target, pending.deferred, pending.action);
+      delete this._pendingActions[indexableKey(pending.id)];
+      this._targetReached(target, pending.id, pending.tags, pending.deferred, pending.action);
     }
 
     return target;
@@ -63,28 +73,28 @@ export default class MilestoneCoordinator implements CoordinatorInterface {
   public deactivateAll(): void {
     this._continueAll();
 
-    this.names.forEach(name => {
-      delete ACTIVE_COORDINATORS[indexableKey(name)];
+    this.keys.forEach(key => {
+      delete ACTIVE_COORDINATORS[indexableKey(key)];
     });
 
-    this.names = [];
+    this.keys = [];
   }
 
   // Called from milestone()
-  public _milestoneReached<T extends PromiseLike<unknown>>(name: MilestoneKey, action: () => T): T {
+  public _milestoneReached<T extends PromiseLike<unknown>>(id: MilestoneKey, tags: MilestoneKey[], action: () => T): T {
     let target = this._nextTarget;
 
     // If we're already targeting another milestone, just pass through
-    if (target && target.name !== name) {
+    if (target && !matchesKey(target.key, id, tags)) {
       return action();
     }
 
     let deferred = defer();
-    if (target && target.name === name) {
-      this._targetReached(target, deferred, action);
+    if (target && matchesKey(target.key, id, tags)) {
+      this._targetReached(target, id, tags, deferred, action);
     } else {
-      assert(!this._pendingActions[indexableKey(name)], `Milestone '${name.toString()}' is already pending.`);
-      this._pendingActions[indexableKey(name)] = { deferred, action };
+      assert(!this._pendingActions[indexableKey(id)], `Milestone '${id.toString()}' is already pending.`);
+      this._pendingActions[indexableKey(id)] = { id: id, tags, deferred, action };
     }
 
     // Playing fast and loose with our casting here under the assumption that
@@ -99,29 +109,55 @@ export default class MilestoneCoordinator implements CoordinatorInterface {
     }
   }
 
-  private _targetReached(target: MilestoneTarget, deferred: Deferred<unknown>, action: () => unknown): void {
+  private _targetReached(
+    target: MilestoneTarget,
+    id: MilestoneKey,
+    tags: MilestoneKey[],
+    deferred: Deferred<unknown>,
+    action: () => unknown,
+  ): void {
     this._nextTarget = null;
-    this._pausedMilestone = new MilestoneHandle(target.name, this, action, deferred);
+    this._pausedMilestone = new MilestoneHandle(id, tags, this, action, deferred);
 
     target._resolve(this._pausedMilestone);
   }
 
   private _continueAll({ except }: { except?: MilestoneKey } = {}): void {
     let paused = this._pausedMilestone;
-    if (paused && paused.name !== except) {
+    if (paused && !matchesKey(except, paused.id, paused.tags)) {
       paused.continue();
     }
 
     allKeys(this._pendingActions).forEach(key => {
-      if (key === except) {
+      let { id, deferred, action, tags } = this._pendingActions[indexableKey(key)];
+      if (matchesKey(except, id, tags)) {
         return;
       }
 
-      let { deferred, action } = this._pendingActions[indexableKey(key)];
       deferred.resolve(action());
       delete this._pendingActions[indexableKey(key)];
     });
   }
+
+  private _getPendingAction(key: MilestoneKey): PendingAction | undefined {
+    let id = allKeys(this._pendingActions).find(maybeId => {
+      let { tags } = this._pendingActions[indexableKey(maybeId)];
+      return matchesKey(key, maybeId, tags);
+    });
+
+    return id ? this._pendingActions[indexableKey(id)] : undefined;
+  }
+}
+
+interface PendingAction {
+  id: MilestoneKey;
+  tags: MilestoneKey[];
+  action: () => unknown;
+  deferred: Deferred<unknown>;
+}
+
+function matchesKey(key: MilestoneKey | undefined, id: MilestoneKey, tags: MilestoneKey[]): boolean {
+  return key !== undefined && (key === id || tags.indexOf(key) !== -1);
 }
 
 // TypeScript doesn't allow symbols as an index type, which makes a number of things

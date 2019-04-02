@@ -8,13 +8,13 @@ const debug = logger('@milestones/core:target');
 export default class MilestoneTarget implements TargetInterface {
   private _coordinatorDeferred: Deferred<MilestoneHandle> = defer();
 
-  public constructor(public name: MilestoneKey) {}
+  public constructor(public key: MilestoneKey) {}
 
   public then<TResult1 = MilestoneHandle, TResult2 = never>(
     onfulfilled?: ((value: MilestoneHandle) => TResult1 | PromiseLike<TResult1>) | undefined | null,
     onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | undefined | null,
   ): Promise<TResult1 | TResult2> {
-    debug('awaiting arrival at milestone %s', this.name);
+    debug('awaiting arrival at milestone %s', this.key);
     return this._coordinatorDeferred.promise.then(onfulfilled, onrejected);
   }
 
@@ -32,6 +32,10 @@ export default class MilestoneTarget implements TargetInterface {
 
   public andCancel(options?: ResolutionOptions): Promise<void> {
     return this.then(milestone => milestone.cancel(options));
+  }
+
+  public toString(): string {
+    return `MilestoneTarget(${this.key.toString()})`;
   }
 
   // Called from the MilestoneCoordinator
