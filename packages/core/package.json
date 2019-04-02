@@ -12,6 +12,7 @@
   "scripts": {
     "lint": "eslint . --ext ts,js",
     "test": "mocha -r ts-node/register tests/**/*.ts",
+    "test:watch": "mocha -r ts-node/register --watch --extension ts 'tests/**/*.ts'",
     "build": "yarn clean && tsc",
     "clean": "rimraf dist",
     "prepublishOnly": "yarn build",

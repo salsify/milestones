@@ -13,8 +13,8 @@ const debugInactive = logger('@milestones/core:inactive');
  * Inactive milestones will pass through to their given callbacks as though the
  * milestone wrapper weren't present at all.
  */
-export function activateMilestones(keys: MilestoneKey[]): MilestoneCoordinator {
-  return new CoordinatorImpl(keys);
+export function activateMilestones(keys: MilestoneKey[], options?: ActivationOptions): MilestoneCoordinator {
+  return new CoordinatorImpl(keys, options);
 }
 
 /**
@@ -22,6 +22,19 @@ export function activateMilestones(keys: MilestoneKey[]): MilestoneCoordinator {
  */
 export function deactivateAllMilestones(): void {
   CoordinatorImpl.deactivateAll();
+}
+
+export interface ActivationOptions {
+  /**
+   * A callback to be invoked whenever one of the activated milestones in this
+   * set is reached, allowing you to specify default behavior for a set of
+   * milestones.
+   *
+   * Note that this callback *will not* be invoked for a milestone that you
+   * explicitly `advanceTo`, allowing you to override the default behavior
+   * on a case by case basis if desired.
+   */
+  onMilestoneReached?(milestone: MilestoneHandle): void;
 }
 
 /**

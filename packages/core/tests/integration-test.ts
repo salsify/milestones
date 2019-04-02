@@ -1,4 +1,4 @@
-import { describe, test } from 'mocha';
+import { describe, test, afterEach } from 'mocha';
 import { expect } from 'chai';
 import {
   milestone,
@@ -9,7 +9,7 @@ import {
   MilestoneKey,
 } from '../src/index';
 
-describe('Core API', () => {
+describe('Integration: Core APIs', () => {
   let scenarios = [
     { name: 'with string keys', milestones: ['one', 'two'] },
     { name: 'with symbol keys', milestones: [Symbol('one'), Symbol('two')] },
@@ -219,6 +219,54 @@ describe('Core API', () => {
       });
     });
   }
+
+  describe('with a default handler configured', async () => {
+    afterEach(() => deactivateAllMilestones());
+
+    it('invokes the default handler when a milestone is reached normally', async () => {
+      activateMilestones(['one'], {
+        onMilestoneReached: handle => handle.return('ok'),
+      });
+
+      let program = async (): Promise<string> => {
+        return await milestone('one', async () => 'bad');
+      };
+
+      expect(await program()).to.equal('ok');
+    });
+
+    it('does not invoke the default handler for the target milestone', async () => {
+      activateMilestones(['one'], {
+        onMilestoneReached: handle => handle.throw(new Error('boom')),
+      });
+
+      let advancePromise = advanceTo('one');
+      let program = async (): Promise<string> => {
+        return await milestone('one', async () => 'bad');
+      };
+
+      let programPromise = program();
+      await advancePromise.andReturn('ok');
+      expect(await programPromise).to.equal('ok');
+    });
+
+    it('invokes the default handler when advancing to another target', async () => {
+      activateMilestones(['one', 'two'], {
+        onMilestoneReached: handle => handle.return('hello'),
+      });
+
+      let program = async (): Promise<string[]> => {
+        let one = await milestone('one', async () => 'x');
+        let two = await milestone('two', async () => 'world');
+        return [one, two];
+      };
+
+      let advancePromise = advanceTo('two');
+      let programPromise = program();
+      await advancePromise.andReturn('world');
+      expect(await programPromise).to.deep.equal(['hello', 'world']);
+    });
+  });
 
   describe('with multiple milestone sets active', () => {
     let keyOne = Symbol('one');
