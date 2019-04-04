@@ -1,4 +1,4 @@
-import { MilestoneKey, MilestoneCoordinator as CoordinatorInterface } from '../index';
+import { MilestoneKey, MilestoneCoordinator as CoordinatorInterface, ActivationOptions } from '../index';
 import { defer, assert, Deferred } from './sys';
 import { getOrInit } from './global';
 import MilestoneHandle from './milestone-handle';
@@ -40,14 +40,16 @@ export default class MilestoneCoordinator implements CoordinatorInterface {
   private _nextTarget: MilestoneTarget | null;
   private _pausedMilestone: MilestoneHandle | null;
   private _pendingActions: Record<MilestoneKey, PendingAction>;
+  private _defaultHandler?: (milestone: MilestoneHandle) => void;
 
-  public constructor(keys: MilestoneKey[]) {
+  public constructor(keys: MilestoneKey[], options: ActivationOptions = {}) {
     keys.forEach(key => {
       assert(!MilestoneCoordinator.forKey(key), `Milestone '${key.toString()}' is already active.`);
       ACTIVE_COORDINATORS[indexableKey(key)] = this;
     });
 
     this.keys = keys;
+    this._defaultHandler = options.onMilestoneReached;
     this._pendingActions = Object.create(null);
     this._nextTarget = null;
     this._pausedMilestone = null;
@@ -84,14 +86,16 @@ export default class MilestoneCoordinator implements CoordinatorInterface {
   public _milestoneReached<T extends PromiseLike<unknown>>(id: MilestoneKey, tags: MilestoneKey[], action: () => T): T {
     let target = this._nextTarget;
 
-    // If we're already targeting another milestone, just pass through
-    if (target && !matchesKey(target.key, id, tags)) {
+    // If we're already targeting another milestone and don't have a default handler, just pass through
+    if (target && !matchesKey(target.key, id, tags) && !this._defaultHandler) {
       return action();
     }
 
     let deferred = defer();
     if (target && matchesKey(target.key, id, tags)) {
       this._targetReached(target, id, tags, deferred, action);
+    } else if (this._defaultHandler) {
+      this._defaultHandler(new MilestoneHandle(id, tags, this, action, deferred));
     } else {
       assert(!this._pendingActions[indexableKey(id)], `Milestone '${id.toString()}' is already pending.`);
       this._pendingActions[indexableKey(id)] = { id: id, tags, deferred, action };
