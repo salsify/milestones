@@ -9,7 +9,8 @@ export default class MilestoneHandle implements HandleInterface {
   private resolution: Resolution | null = null;
 
   public constructor(
-    public name: MilestoneKey,
+    public id: MilestoneKey,
+    public tags: MilestoneKey[],
     private _coordinator: MilestoneCoordinator,
     private _action: () => unknown,
     private _deferred: Deferred<unknown>,
@@ -39,7 +40,7 @@ export default class MilestoneHandle implements HandleInterface {
   private _complete(resolution: Resolution, options: ResolutionOptions = {}, finalizer: () => void): Promise<void> {
     assert(
       !this.resolution || resolution === this.resolution,
-      `Multiple resolutions for milestone '${this.name.toString()}'`,
+      `Multiple resolutions for milestone '${this.id.toString()}'`,
     );
 
     if (!this.resolution) {

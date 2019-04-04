@@ -6,14 +6,15 @@ const debugActive = logger('@milestones/core:active');
 const debugInactive = logger('@milestones/core:inactive');
 
 /**
- * Activate all milestones in the given array of names. Active milestones will pause
- * when they are reached until instructed on how to proceed via a `MilestoneHandle`.
+ * Activate all milestones matched by the given array of keys. Active milestones
+ * will pause when they are reached until instructed on how to proceed via a
+ * `MilestoneHandle`.
  *
  * Inactive milestones will pass through to their given callbacks as though the
- * milestone wrapper weren't present at all...
+ * milestone wrapper weren't present at all.
  */
-export function activateMilestones(milestones: MilestoneKey[]): MilestoneCoordinator {
-  return new CoordinatorImpl(milestones);
+export function activateMilestones(keys: MilestoneKey[]): MilestoneCoordinator {
+  return new CoordinatorImpl(keys);
 }
 
 /**
@@ -43,12 +44,12 @@ export function deactivateAllMilestones(): void {
  * await advanceTo(MyMilestone).andContinue();
  * ```
  */
-export function advanceTo(name: MilestoneKey): MilestoneTarget {
-  let coordinator = CoordinatorImpl.forMilestone(name);
+export function advanceTo(key: MilestoneKey): MilestoneTarget {
+  let coordinator = CoordinatorImpl.forKey(key);
   if (!coordinator) {
-    throw new Error(`Milestone ${name.toString()} isn't currently active.`);
+    throw new Error(`Milestone ${key.toString()} isn't currently active.`);
   } else {
-    return coordinator.advanceTo(name);
+    return coordinator.advanceTo(key);
   }
 }
 
@@ -68,16 +69,30 @@ export interface MilestoneOptions {
  * When not activated, code wrapped in a milestone is immediately invoked as though
  * the wrapper weren't there at all.
  */
-export function milestone<T extends PromiseLike<unknown>>(name: MilestoneKey, callback: () => T): T;
-export function milestone(name: MilestoneKey): PromiseLike<void>;
-export function milestone(name: MilestoneKey, callback?: () => PromiseLike<unknown>): PromiseLike<unknown> {
-  let coordinator = CoordinatorImpl.forMilestone(name);
+export function milestone<T extends PromiseLike<unknown>>(
+  id: MilestoneKey,
+  callback: () => T,
+  options?: MilestoneOptions,
+): T;
+export function milestone(id: MilestoneKey, options?: MilestoneOptions): PromiseLike<void>;
+export function milestone(
+  id: MilestoneKey,
+  callback?: MilestoneOptions | (() => PromiseLike<unknown>),
+  options?: MilestoneOptions,
+): PromiseLike<unknown> {
+  if (callback && typeof callback !== 'function') {
+    options = callback;
+    callback = undefined;
+  }
+
+  let tags = (options && options.tags) || [];
+  let coordinator = CoordinatorImpl.forMilestone(id, tags);
   let action = callback || (() => Promise.resolve());
   if (coordinator) {
-    debugActive('reached active milestone %s', name);
-    return coordinator._milestoneReached(name, action);
+    debugActive('reached active milestone %s', id);
+    return coordinator._milestoneReached(id, tags, action);
   } else {
-    debugInactive('skipping inactive milestone %s', name);
+    debugInactive('skipping inactive milestone %s', id);
     return action();
   }
 }
