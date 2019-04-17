@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="256px" height="256px" viewBox="0 0 256 256" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
+    <title>milestones-icon</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="milestones-icon" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <path d="M118,218 C104.537683,191.075366 64,129.346224 64,94 C64,58.653776 92.653776,30 128,30 C163.346224,30 192,58.653776 192,94 C192,123.48976 151.095795,190.6882 138,218 C133.205078,228 123,228 118,218 Z M128,122 C142.359403,122 154,110.359403 154,96 C154,81.6405965 142.359403,70 128,70 C113.640597,70 102,81.6405965 102,96 C102,110.359403 113.640597,122 128,122 Z" id="Combined-Shape" fill="#315831"></path>
+        <text id="{" font-family="Helvetica-Bold, Helvetica" font-size="200" font-weight="bold" fill="#4A4A4A">
+            <tspan x="0" y="181">{</tspan>
+        </text>
+        <text id="}" font-family="Helvetica-Bold, Helvetica" font-size="200" font-weight="bold" fill="#4A4A4A">
+            <tspan x="192" y="181">}</tspan>
+        </text>
+    </g>
+</svg>
