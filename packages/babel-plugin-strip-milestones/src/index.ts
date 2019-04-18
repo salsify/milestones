@@ -5,11 +5,13 @@ import { PluginObj } from '@babel/core';
 const SOURCE_MODULE = '@milestones/core';
 const SOURCE_IDENTIFIER = 'milestone';
 
+type BabelCore = typeof import('@babel/core');
+
 /**
  * A Babel plugin that strips all imports and usage of `milestone(key, callback)` and replaces
  * them with an equivalent invocation of `callback()`.
  */
-export default function stripMilestones(babel: typeof import('@babel/core')): PluginObj<State> {
+export default function stripMilestones(babel: BabelCore): PluginObj<State> {
   const t = babel.types;
 
   return {
@@ -83,6 +85,7 @@ export default function stripMilestones(babel: typeof import('@babel/core')): Pl
 }
 
 // Unclear where (if anywhere) this type info actually lives
+/** @hide */
 interface State {
   file: {
     code: string;
