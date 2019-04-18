@@ -30,7 +30,7 @@ before_install:
 script:
   - yarn lint
   - yarn workspace @milestones/core test
-  - yarn workspace @milestones/babel-plugin test
+  - yarn workspace @milestones/babel-plugin-strip-milestones test
   - yarn build
   - yarn workspace @milestones/ember test
   - env STRIP_MILESTONES=true yarn workspace @milestones/ember test
