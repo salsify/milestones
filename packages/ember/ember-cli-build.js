@@ -9,8 +9,26 @@ module.exports = function(defaults) {
       stripMilestones: `${process.env.STRIP_MILESTONES}` === 'true',
     },
 
+    autoImport: {
+      webpack: {
+        node: {
+          fs: 'empty',
+        },
+      },
+    },
+
+    cssModules: {
+      plugins: {
+        before: [require('postcss-nested')], // eslint-disable-line node/no-unpublished-require
+      },
+    },
+
     'ember-cli-babel': {
       throwUnlessParallelizable: true,
+    },
+
+    'ember-cli-addon-docs-typedoc': {
+      packages: ['@milestones/core', '@milestones/ember', '@milestones/babel-plugin-strip-milestones'],
     },
   });
 

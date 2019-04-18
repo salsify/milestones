@@ -3,7 +3,7 @@ import { advanceTo, setupMilestones } from '@milestones/core';
 import { setupApplicationTest } from 'ember-qunit';
 import { module, test } from 'qunit';
 import Env from 'dummy/config/environment';
-import { TickTimer } from 'dummy/routes/loop';
+import { TickTimer } from 'dummy/pods/loop/route';
 
 if (!Env.STRIP_MILESTONES) {
   module('Acceptance | infinite loops', function(hooks) {
