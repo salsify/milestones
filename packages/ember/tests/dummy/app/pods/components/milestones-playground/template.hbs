@@ -1,7 +1,8 @@
-<div ...attributes local-class="playground">
+<div ...attributes local-class="playground" data-test="playground">
   <div local-class="controls">
     <button
       local-class="control-button"
+      data-test="play-pause"
       onclick={{action (if (eq this.state 'running') this.pause this.play)}}
     >
       {{#if (eq this.state 'running')}}
@@ -10,10 +11,10 @@
         {{fa-icon 'play'}} Play
       {{/if}}
     </button>
-    <button local-class="control-button" onclick={{action this.step}}>
+    <button local-class="control-button" data-test="step" onclick={{action this.step}}>
       {{fa-icon 'step-forward'}} Step
     </button>
-    <button local-class="control-button" onclick={{action this.stop}} disabled={{eq this.state 'idle'}}>
+    <button local-class="control-button" data-test="reset" onclick={{action this.stop}} disabled={{eq this.state 'idle'}}>
       {{fa-icon 'stop'}} Reset
     </button>
 
@@ -85,7 +86,7 @@
   <SlideHide @visible={{or this.showConsole this.logLines.length}}>
     <div local-class="box">
       Output
-      <div local-class="output">
+      <div local-class="output" data-test="output">
         {{#each logLines as |line|}}
           <pre>{{line}}</pre>
         {{else}}

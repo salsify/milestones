@@ -1,3 +1,4 @@
+import { milestone } from '@milestones/core';
 import { PausePoint, EvaluationThread, EvaluationFunction, CancelEvaluation } from './evaluation/evaluation-thread';
 import { rewriteImports } from './evaluation/rewrite-imports';
 import { annotateAsyncCode } from './evaluation/annotate-code';
@@ -5,6 +6,8 @@ import { stripIndent } from 'common-tags';
 import RSVP from 'rsvp';
 
 export { PausePoint };
+
+export const StepComplete = Symbol('step-complete');
 
 type StateListener = (pauses: Record<string, PausePoint[]>) => void;
 type ErrorListener = (key: string, error: { message?: string }) => void;
@@ -102,6 +105,8 @@ export class Evaluation {
 
     this.emitStateUpdate();
     this.scheduleStep(maxWaitMs);
+
+    await milestone(StepComplete);
   }
 
   public enableAutoAdvance(msPerStep: number): void {

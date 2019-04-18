@@ -71,6 +71,7 @@
     "eslint-plugin-node": "^8.0.1",
     "loader.js": "^4.7.0",
     "postcss-nested": "^4.1.2",
+    "pretender": "^3.0.1",
     "qunit-dom": "^0.8.0",
     "typescript": "^3.3.4000"
   },
