@@ -7,9 +7,9 @@
     "noImplicitAny": true,
     "noImplicitThis": true,
     "alwaysStrict": true,
-    "strictNullChecks": true,
-    "strictPropertyInitialization": true,
+    "strict": true,
     "noFallthroughCasesInSwitch": true,
+    "experimentalDecorators": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
@@ -34,6 +34,9 @@
       ],
       "@milestones/core": [
         "../core/src"
+      ],
+      "@milestones/babel-plugin-strip-milestones": [
+        "../babel-plugin-strip-milestones/src"
       ],
       "*": [
         "types/*"

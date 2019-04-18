@@ -13,8 +13,8 @@ module.exports = {
     // For potentially installing the Babel plugin to strip milestones, we want to
     // apply to our direct parent, whether it's an addon or the root app.
     let parent = this.app || this.addon;
-    if (this._shouldStripMilestones() && !hasPlugin(parent, '@milestones/babel-plugin')) {
-      addPlugin(parent, require.resolve('@milestones/babel-plugin'));
+    if (this._shouldStripMilestones() && !hasPlugin(parent, '@milestones/babel-plugin-strip-milestones')) {
+      addPlugin(parent, require.resolve('@milestones/babel-plugin-strip-milestones'));
     }
   },
 
