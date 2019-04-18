@@ -23,6 +23,11 @@ module.exports = function(defaults) {
       },
     },
 
+    ace: {
+      themes: ['tomorrow_night_bright'],
+      modes: ['javascript'],
+    },
+
     'ember-cli-babel': {
       throwUnlessParallelizable: true,
     },

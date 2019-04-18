@@ -1,0 +1,97 @@
+<div ...attributes local-class="playground">
+  <div local-class="controls">
+    <button
+      local-class="control-button"
+      onclick={{action (if (eq this.state 'running') this.pause this.play)}}
+    >
+      {{#if (eq this.state 'running')}}
+        {{fa-icon 'pause'}} Pause
+      {{else}}
+        {{fa-icon 'play'}} Play
+      {{/if}}
+    </button>
+    <button local-class="control-button" onclick={{action this.step}}>
+      {{fa-icon 'step-forward'}} Step
+    </button>
+    <button local-class="control-button" onclick={{action this.stop}} disabled={{eq this.state 'idle'}}>
+      {{fa-icon 'stop'}} Reset
+    </button>
+
+    <div local-class="spacer"></div>
+
+    <BasicDropdown @horizontalPosition="right" as |dd|>
+      <dd.trigger local-class="control-icon" title="Playground settings">{{fa-icon 'cog' size='lg'}}</dd.trigger>
+      <dd.content>
+        <div local-class="settings-dropdown">
+          <label>
+            <input type="checkbox" checked={{this.showPreamble}} oninput={{action (mut this.showPreamble) (not this.showPreamble)}}>
+            Show Preamble Code
+          </label>
+          <br>
+          <label>
+            <input type="checkbox" checked={{this.showConsole}} oninput={{action (mut this.showConsole) (not this.showConsole)}}>
+            Show Console Output
+          </label>
+          <br>
+          <label>
+            <input type="checkbox" checked={{this.showDOM}} oninput={{action (mut this.showDOM) (not this.showDOM)}}>
+            Show DOM Output
+          </label>
+          <hr local-class="divider">
+          <div>Play Speed</div>
+          <input type="range" min="0" max="100" value={{this.playSpeed}} oninput={{action this.speedChanged value='target.value'}} style="width: 100%">
+        </div>
+      </dd.content>
+    </BasicDropdown>
+
+    <div local-class="control-icon" title="Help with the playground">
+      {{#link-to 'docs.the-playground'}}
+        {{fa-icon 'question-circle' size='lg'}}
+      {{/link-to}}
+    </div>
+  </div>
+
+  <SlideHide @visible={{this.showPreamble}}>
+    {{yield (hash
+      preamble=(component 'code-editor'
+        title='Preamble'
+        class=(local-class 'editor box')
+        minLines=4
+        maxLines=25
+        onReady=(action this.preambleWasAdded)
+        onChange=(action this.codeDidChange)
+      )
+    )}}
+  </SlideHide>
+
+  <div local-class="row">
+    {{yield (hash
+      editor=(component 'code-editor'
+        class=(local-class 'editor box')
+        lines=this.lines
+        onReady=(action this.editorWasAdded)
+        onChange=(action this.codeDidChange)
+      )
+    )}}
+  </div>
+
+  <SlideHide @visible={{this.showDOM}}>
+    <div local-class="box">
+      DOM
+      <div local-class="output" {{did-insert (action (mut this.domElement))}}></div>
+    </div>
+  </SlideHide>
+
+  <SlideHide @visible={{or this.showConsole this.logLines.length}}>
+    <div local-class="box">
+      Output
+      <div local-class="output">
+        {{#each logLines as |line|}}
+          <pre>{{line}}</pre>
+        {{else}}
+          <span local-class="no-output">(No output yet)</span>
+        {{/each}}
+      </div>
+    </div>
+  </SlideHide>
+</div>

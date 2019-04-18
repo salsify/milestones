@@ -12,6 +12,7 @@ module.exports = {
   },
   rules: {
     'ember/avoid-leaking-state-in-ember-objects': 'off',
+    '@typescript-eslint/no-var-requires': 'off',
   },
   overrides: [
     // node files
@@ -36,9 +37,7 @@ module.exports = {
         node: true,
       },
       plugins: ['node'],
-      rules: Object.assign({}, require('eslint-plugin-node').configs.recommended.rules, {
-        '@typescript-eslint/no-var-requires': 'off',
-      }),
+      rules: Object.assign({}, require('eslint-plugin-node').configs.recommended.rules, {}),
     },
   ],
 };

@@ -1,0 +1,18 @@
+<div local-class='code' {{did-insert (action this.readCode)}}>
+  {{yield}}
+</div>
+
+<div local-class="title">{{@title}}</div>
+
+<EmberAce
+  local-class="editor {{if this.isError 'error'}}"
+  @mode='ace/mode/javascript'
+  @theme='ace/theme/tomorrow_night_bright'
+  @minLines={{or @minLines @lines}}
+  @maxLines={{or @maxLines @lines}}
+  @value={{this.code}}
+  @ready={{action this.editorReady}}
+  @update={{action this.setCode}}
+  @highlightActiveLine={{false}}
+  @markers={{this.markers}}
+/>
