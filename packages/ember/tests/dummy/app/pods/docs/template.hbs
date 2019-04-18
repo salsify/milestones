@@ -1,0 +1,33 @@
+<DocsHeader @prefix='' @name={{milestones-icon}} />
+
+<DocsViewer as |viewer|>
+  <viewer.nav as |nav|>
+    <nav.section @label='Guides' />
+
+    <nav.item @label='Core Library' @route='docs.index' />
+    <nav.subnav as |nav|>
+      <nav.item @label='Interacting with Milestones' @route='docs.interacting-with-milestones' />
+      <nav.item @label='Milestone Keys' @route='docs.milestone-keys' />
+      <nav.item @label='Coordination' @route='docs.coordination' />
+      <nav.item @label='Deactivating Milestones' @route='docs.deactivating-milestones' />
+    </nav.subnav>
+
+    <nav.item @label='Babel Plugin' @route='docs.babel-plugin' />
+    <nav.item @label='Ember' @route='docs.ember'/>
+
+    <nav.section @label='Cookbook' />
+    <nav.item @label='Referencing Milestones' @route='docs.referencing-milestones' />
+    <nav.item @label='Skipping Pauses' @route='docs.skipping-pauses' />
+
+    <nav.section @label='About' />
+    <nav.item @label='FAQ' @route='docs.faq' />
+    <nav.item @label='The Playground' @route='docs.the-playground' />
+    <nav.item @label='Acknowledgements' @route='docs.acknowledgements' />
+  </viewer.nav>
+
+  <viewer.main>
+    {{outlet}}
+  </viewer.main>
+</DocsViewer>
+
+<DocsKeyboardShortcuts />

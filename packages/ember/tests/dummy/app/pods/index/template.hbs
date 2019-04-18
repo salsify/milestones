@@ -1,0 +1,75 @@
+<DocsHeader @prefix='' @name={{milestones-icon}} />
+
+<div local-class="hero">
+  <DocsHero
+    @prefix=''
+    @heading='Milestones'
+    @byline='Navigate concurrent code with ease.'
+  />
+</div>
+
+<div class='docs-container docs-md' local-class="content">
+  <section class='docs-max-w-lg docs-mx-auto docs-pb-8 docs-mt-16'>
+    <h2>What's This?</h2>
+
+    The <code>@milestones</code> packages provide a set of tools for navigating concurrent code in testing and
+    development. Milestones act as named synchronization points, and they give you the ability to change the behavior
+    of annotated code during testing, skipping pauses or mocking out results.
+  </section>
+
+  <h2>Example</h2>
+  <MilestonesPlayground
+    local-class="playground"
+    @showDOM={{true}}
+    @lines={{15}}
+    as |playground|
+  >
+    <playground.preamble>
+      import { milestone, advanceTo, activateMilestones } from '@milestones/core';
+      import { element } from '@milestones/playground';
+      import { expect } from 'chai';
+
+      const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+      const saveData = () => sleep(250);
+
+      const Save = Symbol('save');
+      const ShowMessage = Symbol('show-message');
+
+      activateMilestones([Save, ShowMessage]);
+    </playground.preamble>
+
+    <playground.editor @title="Test Code">
+      // Wait until we start saving, then check that
+      // the appropriate message is being shown
+      let saveHandle = await advanceTo(Save);
+      expect(element.innerText).to.equal('Saving...');
+
+      // Now go ahead and perform the save
+      await saveHandle.continue();
+      expect(element.innerText).to.equal('Saved!');
+
+      // Now advance to where we pause to show the user
+      // the status message, but immediately return
+      await advanceTo(ShowMessage).andReturn();
+      expect(element.innerText).to.equal('Idle');
+    </playground.editor>
+
+    <playground.editor @title="Application Code">
+      element.innerText = 'Saving...';
+
+      await milestone(Save, () => saveData());
+      element.innerText = 'Saved!';
+
+      await milestone(ShowMessage, () => sleep(4000));
+      element.innerText = 'Idle';
+    </playground.editor>
+  </MilestonesPlayground>
+
+  <aside>
+    Not sure what you're looking at? Check out the
+    {{#link-to 'docs.the-playground' local-class='link'}}playground overview{{/link-to}},
+    or go ahead and {{#link-to 'docs' local-class='link'}}jump into the docs!{{/link-to}}
+  </aside>
+</div>
+
+<DocsKeyboardShortcuts />

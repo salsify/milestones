@@ -8,6 +8,11 @@ module.exports = function(environment) {
     rootURL: '/',
     locationType: 'auto',
     STRIP_MILESTONES: `${process.env.STRIP_MILESTONES}` === 'true',
+    fontawesome: {
+      icons: {
+        'free-solid-svg-icons': ['play', 'pause', 'step-forward', 'stop', 'cog', 'question-circle'],
+      },
+    },
     EmberENV: {
       FEATURES: {
         // Here you can enable experimental features on an ember canary build
