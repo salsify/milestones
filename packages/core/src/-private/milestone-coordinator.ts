@@ -130,6 +130,7 @@ export default class MilestoneCoordinator implements CoordinatorInterface {
     let paused = this._pausedMilestone;
     if (paused && !matchesKey(except, paused.id, paused.tags)) {
       paused.continue();
+      this._pausedMilestone = null;
     }
 
     allKeys(this._pendingActions).forEach(key => {

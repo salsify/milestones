@@ -24,6 +24,7 @@ export function deactivateAllMilestones(): void {
   CoordinatorImpl.deactivateAll();
 }
 
+/** @hide */
 export interface ActivationOptions {
   /**
    * A callback to be invoked whenever one of the activated milestones in this
@@ -66,6 +67,7 @@ export function advanceTo(key: MilestoneKey): MilestoneTarget {
   }
 }
 
+/** @hide */
 export interface MilestoneOptions {
   /**
    * Tags for identifiying this milestone as part of one or
@@ -200,6 +202,16 @@ export interface MilestoneTarget extends PromiseLike<MilestoneHandle> {
  * out a different return value, error, or cancellation.
  */
 export interface MilestoneHandle {
+  /**
+   * The id of this pending milestone.
+   */
+  id: MilestoneKey;
+
+  /**
+   * Any tags on this pending milestone.
+   */
+  tags: MilestoneKey[];
+
   /**
    * Settle this milestone by invoking its original callback. The promise
    * returned by this method will resolve once the result of the original
