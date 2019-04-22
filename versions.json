@@ -1,20 +1,14 @@
 {
-  "docs-draft": {
-    "path": "versions/docs-draft",
-    "name": "docs-draft",
-    "sha": "73842a86068cc46c0ca50dfe193a48b58951bfd0",
-    "tag": null
-  },
   "-latest": {
     "path": "",
     "name": "Latest",
     "sha": "ff5e24b0cf6ec635b46af4be8fb6234c209e2445",
-    "tag": null
+    "tag": "v1.0.0"
   },
   "v1.0.0": {
     "path": "versions/v1.0.0",
     "name": "v1.0.0",
     "sha": "ff5e24b0cf6ec635b46af4be8fb6234c209e2445",
-    "tag": null
+    "tag": "v1.0.0"
   }
 }
