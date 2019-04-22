@@ -26,10 +26,10 @@
       "dummy/*": [
         "tests/dummy/app/*"
       ],
-      "@milestones/ember": [
+      "ember-milestones": [
         "addon"
       ],
-      "@milestones/ember/*": [
+      "ember-milestones/*": [
         "addon/*"
       ],
       "@milestones/core": [

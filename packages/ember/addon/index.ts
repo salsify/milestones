@@ -3,6 +3,8 @@ import { run } from '@ember/runloop';
 import EmberObject from '@ember/object';
 import { registerSystem } from '@milestones/core';
 
+export * from '@milestones/core';
+
 declare const require: {
   (module: string): any; // eslint-disable-line
   has(module: string): boolean;

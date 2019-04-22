@@ -1,4 +1,4 @@
-import '@milestones/ember';
+import 'ember-milestones';
 
 export default {
   name: 'milestones',
