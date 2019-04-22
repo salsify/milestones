@@ -30,7 +30,7 @@ module.exports = {
     if ('stripMilestones' in options) {
       return options.stripMilestones;
     } else {
-      return EmberApp.env() !== 'production';
+      return EmberApp.env() === 'production';
     }
   },
 };
