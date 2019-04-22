@@ -1,6 +1,6 @@
 {
   "name": "@milestones/babel-plugin-strip-milestones",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "repository": "salsify/milestones",
   "license": "MIT",
   "main": "dist/src/index.js",

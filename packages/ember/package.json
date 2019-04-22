@@ -1,6 +1,6 @@
 {
   "name": "@milestones/ember",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "@milestones/core integration for Ember.js",
   "keywords": [
     "ember-addon"
@@ -20,8 +20,8 @@
     "postpublish": "ember ts:clean"
   },
   "dependencies": {
-    "@milestones/babel-plugin-strip-milestones": "*",
-    "@milestones/core": "*",
+    "@milestones/babel-plugin-strip-milestones": "^1.0.0",
+    "@milestones/core": "^1.0.0",
     "ember-auto-import": "^1.2.21",
     "ember-cli-babel": "^7.7.3",
     "ember-cli-babel-plugin-helpers": "^1.1.0",
