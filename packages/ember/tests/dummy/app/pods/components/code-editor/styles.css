@@ -1,0 +1,34 @@
+.code {
+  display: none;
+}
+
+.editor {
+  border: 1px solid #eee;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.error {
+  border: 3px dashed red;
+  margin: -2px;
+}
+
+.active-line-sync,
+.active-line-async {
+  position: absolute;
+  z-index: 20;
+  margin: 0 -10px;
+  border-radius: 0;
+}
+
+.active-line-sync {
+  background-color: rgba(130, 205, 235, 0.5);
+}
+
+.active-line-async {
+  background-color: rgba(100, 100, 50, 0.75);
+}
+
+:global .ace_hidden-cursors .ace_cursor {
+  opacity: 0;
+}

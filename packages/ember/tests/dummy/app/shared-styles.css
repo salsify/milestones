@@ -1,0 +1,12 @@
+.button {
+  border: 1px solid #eee;
+  padding: 0.5em 1em;
+  border-radius: 0.125em;
+  box-shadow: 1px 1px 2px 0px rgba(0, 0, 0, 0.1);
+}
+
+.button:active {
+  position: relative;
+  top: 1px;
+  left: 1px;
+}

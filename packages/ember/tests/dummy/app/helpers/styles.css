@@ -1,0 +1,9 @@
+.svg {
+  width: 1em;
+  vertical-align: middle;
+  margin-right: 0.15em;
+
+  path {
+    fill: var(--brand-primary);
+  }
+}

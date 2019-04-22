@@ -1,0 +1,38 @@
+.hero > :first-child {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  text-shadow:
+    0 0 3px black,
+    0 0 2px black;
+}
+
+.hero > :first-child a { /* gross */
+  text-shadow: none;
+}
+
+.hero > :first-child:before {
+  position: absolute;
+  content: '';
+  top: -5%;
+  left: -5%;
+  height: 110%;
+  width: 110%;
+  z-index: -1;
+
+  background-image: url(../banner.jpg);
+  background-position: bottom;
+  background-size: cover;
+  filter: blur(6px) saturate(75%);
+}
+
+.content {
+  padding-bottom: 300px;
+}
+
+.link,
+:global(.docs-md) p a {
+  &, &:visited {
+    color: var(--brand-primary);
+  }
+}

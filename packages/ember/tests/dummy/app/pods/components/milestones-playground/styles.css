@@ -1,0 +1,87 @@
+.controls {
+  margin-top: 1em;
+  font-size: 0.75em;
+  display: flex;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.control-button {
+  composes: button from 'dummy/shared-styles';
+  width: 7em;
+}
+
+.control-button + .control-button {
+  margin-left: 8px;
+}
+
+.control-icon,
+.control-icon a {
+  height: 20px;
+  color: #bbb !important;
+  cursor: pointer;
+}
+
+.control-icon:hover,
+.control-icon:hover a {
+  color: #333 !important;
+}
+
+.control-icon:not(:last-child) {
+  margin-right: 1em;
+}
+
+.settings-dropdown {
+  font-size: 12px;
+  padding: 0.5em 1em;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.divider {
+  border-bottom: 1px solid #eee;
+  margin: 1em 0;
+}
+
+.hidden {
+  display: none;
+}
+
+.box {
+  margin-top: 1em;
+}
+
+.row {
+  display: flex;
+  flex-flow: column;
+}
+
+.editor {
+  flex: 1;
+}
+
+@media screen and (min-width: 1400px) {
+  .row {
+    flex-flow: row;
+  }
+
+  .editor + .editor {
+    margin-left: 8px;
+  }
+}
+
+.output {
+  border: 1px solid #eee;
+  border-radius: 3px;
+  font-size: 13px;
+  padding: 8px;
+  margin-bottom: 16px;
+  min-height: 32px;
+}
+
+.no-output {
+  color: #999;
+}
