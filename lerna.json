@@ -1,0 +1,16 @@
+{
+  "packages": [
+    "packages/core",
+    "packages/babel-plugin-strip-milestones",
+    "packages/ember"
+  ],
+  "version": "independent",
+  "publishConfig": {
+    "access": "public"
+  },
+  "command": {
+    "version": {
+      "message": "chore(release): publish %s"
+    }
+  }
+}

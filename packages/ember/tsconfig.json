@@ -33,10 +33,10 @@
         "addon/*"
       ],
       "@milestones/core": [
-        "../core/src"
+        "../../node_modules/core/src"
       ],
       "@milestones/babel-plugin-strip-milestones": [
-        "../babel-plugin-strip-milestones/src"
+        "../../node_modules/babel-plugin-strip-milestones/src"
       ],
       "*": [
         "types/*"
