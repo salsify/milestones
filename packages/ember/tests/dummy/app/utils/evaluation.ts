@@ -176,7 +176,7 @@ export class Evaluation {
     if (typeof this.msPerStep === 'number' && !this.stepTimeout) {
       this.stepTimeout = setTimeout(() => {
         this.stepTimeout = undefined;
-        if (typeof this.msPerStep === 'number') {
+        if (typeof this.msPerStep === 'number' && !this.isComplete()) {
           this.step(maxWaitMs);
         }
       }, this.msPerStep);

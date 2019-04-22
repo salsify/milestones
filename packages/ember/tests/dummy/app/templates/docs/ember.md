@@ -1,12 +1,37 @@
 # Ember
 
-The `@milestones/ember` addon integrates with the Ember runtime and ember-cli to provide zero-config setup for working with milestones.
+The `@milestones/ember` addon doesn't expand the API surface area of the library; in your application code and tests you'll import from `@milestones/core` like any other consumer. Instead, the purpose of the addon is to integrate with the Ember runtime and ember-cli to provide zero-config setup for working with milestones.
 
-## Runtime
+## Why Do I Need This?
 
-All milestones are configured by `@milestones/ember` to use RSVP for their promise implementation, ensuring that any code that executes as a result of a milestone occurs within a runloop.
+You may wonder why milestones are necessary at all in an Ember project, given the excellent suite of tools at your disposal out of the box with `@ember/test-helpers`. Let's return to the motivating example from {{#link-to 'docs.index'}}the beginning of the docs{{/link-to}}:
 
-## Build
+```ts
+displayMessage('Saving...');
+await saveData();
+
+displayMessage('Saved!');
+await sleep(3000);
+
+displayMessage('');
+```
+
+Because Ember's testing system has a baked in concept of when pending work is done and things are [`settled`](https://github.com/emberjs/ember-test-helpers/blob/master/API.md#settled), you might expect to be able to test this flow in a very natural way. However, you'll run into trouble right out of the gate:
+
+```ts
+await click('.the-save-button');
+assert.dom('.the-message').hasText('Saving...');
+```
+
+Here, the `settled` abstraction has become a double-edged sword: the promise returned by `click` won't resolve until _all_ pending asynchronous actions are complete. This means that the save will be complete and the status messages will already have been shown and cleared before you could even make your first assertion.
+
+You could instead use [`waitUntil`](https://github.com/emberjs/ember-test-helpers/blob/master/API.md#waituntil), which doesn't rely on `settled`, but this is exactly the same as the `pollUntilTrue` approach described in the original example, and it has the same shortcomings. There are times when you need finer-grained control of asynchrony than you have with `@ember/test-helpers`, and that's when milestones are useful.
+
+## Runtime Integration
+
+All milestones are configured by `@milestones/ember` to use RSVP for their promise implementation, and any code that executes as a result of a milestone is guaranteed to occur within a runloop.
+
+## Build Integration
 
 By default, milestones will be stripped from your code in production builds using `@milestones/babel-plugin-strip-milestones`. This behavior is always controlled by the host application, and it can be overridden in the host's `ember-cli-build.js`.
 
@@ -20,7 +45,7 @@ let app = new EmberApp(defaults, {
 
 ## Ember Concurrency
 
-If `ember-concurrency` is present in your project, any milestones you create will be task-like promises that will bubble cancelation appropriately. They will also be cancelable from your test code
+If `ember-concurrency` is present in your project, any milestones you create will be task-like promises that will bubble cancelation appropriately. They will also be cancelable from your test code.
 
 <MilestonesPlayground @showPreamble={{true}} as |pg|>
   <pg.preamble>

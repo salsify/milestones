@@ -4,7 +4,7 @@ By default, all milestones in your code are inert and pass right through to thei
 
 ## Usage
 
-Babel's plugin naming conventions allow you to strip milestones from your build by adding `'@milestones/strip-milestones'` to your `plugins` array in your `babel.config.json` or the corresponding configuration location for your particular Babel integration.
+Babel's plugin naming conventions allow you to strip milestones from your build by adding `'@milestones/babel-plugin-strip-milestones'` to your `plugins` array in your `babel.config.json` or the corresponding configuration location for your particular Babel integration.
 
 You can also apply it by hand:
 
@@ -12,7 +12,7 @@ You can also apply it by hand:
 import { transformSync } from '@babel/core';
 
 let { code } = transformSync(input, {
-  plugins: ['@milestones/strip-milestones']
+  plugins: ['@milestones/babel-plugin-strip-milestones']
 });
 ```
 

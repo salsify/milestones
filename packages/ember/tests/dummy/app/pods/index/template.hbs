@@ -17,59 +17,71 @@
     of annotated code during testing, skipping pauses or mocking out results.
   </section>
 
-  <h2>Example</h2>
-  <MilestonesPlayground
-    local-class="playground"
-    @showDOM={{true}}
-    @lines={{15}}
-    as |playground|
-  >
-    <playground.preamble>
-      import { milestone, advanceTo, activateMilestones } from '@milestones/core';
-      import { element } from '@milestones/playground';
-      import { expect } from 'chai';
+  <section class='docs-max-w-lg docs-mx-auto docs-pb-8'>
+    <h2>Example</h2>
 
-      const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
-      const saveData = () => sleep(250);
+    <p>
+      The code below uses two milestones to track and test progress through a function that saves some data and
+      displays messages along the way to keep the user apprised of progress.
+      Click <code>Play</code> to watch the full example play out, or click <code>Step</code> to move through the code
+      line by line.
+    </p>
 
-      const Save = Symbol('save');
-      const ShowMessage = Symbol('show-message');
+    <MilestonesPlayground
+      local-class="playground"
+      @showDOM={{true}}
+      @lines={{15}}
+      as |playground|
+    >
+      <playground.preamble>
+        import { milestone, advanceTo, activateMilestones } from '@milestones/core';
+        import { element } from '@milestones/playground';
+        import { expect } from 'chai';
 
-      activateMilestones([Save, ShowMessage]);
-    </playground.preamble>
+        const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+        const saveData = () => sleep(250);
+        const displayMessage = msg => element.innerText = msg;
+        const currentMessage = () => element.innerText;
 
-    <playground.editor @title="Test Code">
-      // Wait until we start saving, then check that
-      // the appropriate message is being shown
-      let saveHandle = await advanceTo(Save);
-      expect(element.innerText).to.equal('Saving...');
+        const Save = Symbol('save');
+        const ShowMessage = Symbol('show-message');
 
-      // Now go ahead and perform the save
-      await saveHandle.continue();
-      expect(element.innerText).to.equal('Saved!');
+        activateMilestones([Save, ShowMessage]);
+      </playground.preamble>
 
-      // Now advance to where we pause to show the user
-      // the status message, but immediately return
-      await advanceTo(ShowMessage).andReturn();
-      expect(element.innerText).to.equal('Idle');
-    </playground.editor>
+      <playground.editor @title="Test Code">
+        // Wait until we start saving, then check that
+        // the appropriate message is being shown
+        let saveHandle = await advanceTo(Save);
+        expect(currentMessage()).to.equal('Saving...');
 
-    <playground.editor @title="Application Code">
-      element.innerText = 'Saving...';
+        // Now go ahead and perform the save
+        await saveHandle.continue();
+        expect(currentMessage()).to.equal('Saved!');
 
-      await milestone(Save, () => saveData());
-      element.innerText = 'Saved!';
+        // Now advance to where we pause to show the user
+        // the status message, but immediately return
+        await advanceTo(ShowMessage).andReturn();
+        expect(currentMessage()).to.equal('');
+      </playground.editor>
 
-      await milestone(ShowMessage, () => sleep(4000));
-      element.innerText = 'Idle';
-    </playground.editor>
-  </MilestonesPlayground>
+      <playground.editor @title="Application Code">
+        displayMessage('Saving...');
+        await milestone(Save, () => saveData());
 
-  <aside>
-    Not sure what you're looking at? Check out the
-    {{#link-to 'docs.the-playground' local-class='link'}}playground overview{{/link-to}},
-    or go ahead and {{#link-to 'docs' local-class='link'}}jump into the docs!{{/link-to}}
-  </aside>
+        displayMessage('Saved!');
+        await milestone(ShowMessage, () => sleep(3000));
+
+        displayMessage('');
+      </playground.editor>
+    </MilestonesPlayground>
+
+    <aside>
+      Not sure what you're looking at? Check out the
+      {{#link-to 'docs.the-playground' local-class='link'}}playground overview{{/link-to}},
+      or go ahead and {{#link-to 'docs' local-class='link'}}jump into the docs!{{/link-to}}
+    </aside>
+  </section>
 </div>
 
 <DocsKeyboardShortcuts />

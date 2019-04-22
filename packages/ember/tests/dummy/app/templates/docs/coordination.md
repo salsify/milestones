@@ -2,7 +2,7 @@
 
 For many simple uses of milestones, the details of the coordination between them can be glossed over. If you're skimming these guides to get a high level overview of the library, you may even want to skip this section and come back when you find yourself needing more details.
 
-However, if you're dealing with hairy concurrency situations with multiple different logical threads of execution under test, understanding how different sets of milestones interact is key to ensuring you have the degreee of control you need and that your tests are deterministic.
+However, if you're dealing with hairy concurrency situations with multiple different logical threads of execution under test, understanding how different sets of milestones interact is key to ensuring you have the degree of control you need and that your tests are deterministic.
 
 ## Milestone Coordinators
 
@@ -10,7 +10,7 @@ Each time you call `activateMilestones`, it creates a {{#link-to 'docs.api.item'
 
 When a milestone is reached, it checks to see if there's an active coordinator for either its ID or one of its tags. If so, it pauses until that coordinator tells it how to continue. When you call `advanceTo` with a milestone key, it locates the corresponding coordinator and waits until it's ready with the pending milestone, and then passes your instruction back to the paused milestone for how to proceed.
 
-A given milestone coordinator can only be paused at or advancing to a single milestone at a time. As mentioned in {{#link-to 'docs.interacting-with-milestones'}}Interacting with Milestones{{/link-to}}, if you're currently advancing to a particular milestone, all others belonging to the same coordinator that are reached along the way will automatically behave as if you called `.continue()` on them. This prevents a deadlock scenario where your tests are waiting to reach one milestone, but your application code is waiting to hear how to proceed with an earlier one.
+As mentioned in {{#link-to 'docs.interacting-with-milestones'}}Interacting with Milestones{{/link-to}}, if you're currently advancing to a particular milestone, all others belonging to the same coordinator that are reached along the way will automatically behave as if you called `.continue()` on them. This prevents a deadlock scenario where your tests are waiting to reach one milestone, but your application code is waiting to hear how to proceed with an earlier one.
 
 ### Logical Threads of Execution
 
@@ -27,9 +27,9 @@ activateMilestones([MilestonesFor, ABackgroundPollingOperation]);
 activateMilestones([OtherMilestones, ForTimingGrowlStyle, UserNotifications]);
 ```
 
-When you call the `advanceTo` function importable from `@milestones/core`, it will automatically delegate to the active coordinator for the key you give it.
+When you call importable `advanceTo` function, it will automatically delegate to the active coordinator for the key you give it.
 
-Alternatively, each `activateMilestones` call returns the `MilestoneCoordinator` instancec it creates. If you're dealing with very fine-grained interactions between the flows you're testing, though, and moving between them often, you may find your test code easier to follow if you invoke the `advanceTo` method on the corresponding coordinator itself.
+Alternatively, each `activateMilestones` call returns the `MilestoneCoordinator` instance it creates. If you're dealing with very fine-grained interactions between the flows you're testing, though, and moving between them often, you may find your test code easier to follow if you invoke the `advanceTo` method on the corresponding coordinator itself.
 
 ```ts
 let pollThread = activateMilestones([/*...*/]);
@@ -37,8 +37,8 @@ let notificationThread = activateMilestones([/*...*/]);
 
 // ...
 
-await pollThread.advanceTo('fetch').andReturn({ dataChanged: true });
-await notificationThread.advanceTo('will-show-change-notification').andContinue();
+await pollThread.advanceTo(FetchData).andReturn({ dataChanged: true });
+await notificationThread.advanceTo(WillShowChangeNotification).andContinue();
 
 // assert that the notification is visible
 ```
@@ -55,9 +55,7 @@ activateMilestones([MyMilestone], {
 });
 ```
 
-By specifying an `onMilestoneReached` callback for a coordinator, it can automatically handle any milestones under its jurisdiction rather than requiring that they be explicitly advanced to and then dealt with as part of your test logic. This allows you to effectively neutralize bits of behavior in your application code that aren't under test and might otherwise unnecessarily slow things down or otherwise make them unpredictable.
-
-Note that if you _do_ explicitly `advanceTo` a milestone that belongs to a coordinator with a default handler, that handler won't be applied and you'll instead be able to decide what it does yourself, as long as you call `advanceTo` before that milestone is reached.
+By specifying an `onMilestoneReached` callback for a coordinator, it will automatically handle any milestones under its jurisdiction rather than requiring that they be explicitly advanced to and then dealt with as part of your test logic. This allows you to effectively neutralize bits of behavior in your application code that aren't under test and might otherwise unnecessarily slow things down or otherwise make them unpredictable.
 
 ## Assigning Coordinators to Milestones
 

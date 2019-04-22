@@ -104,10 +104,10 @@ export function milestone(
   let coordinator = CoordinatorImpl.forMilestone(id, tags);
   let action = callback || (() => Promise.resolve());
   if (coordinator) {
-    debugActive('reached active milestone %s', id);
+    debugActive('pausing at active milestone %o (tags: %o)', id, tags);
     return coordinator._milestoneReached(id, tags, action);
   } else {
-    debugInactive('skipping inactive milestone %s', id);
+    debugInactive('skipping inactive milestone %o (tags: %o)', id, tags);
     return action();
   }
 }

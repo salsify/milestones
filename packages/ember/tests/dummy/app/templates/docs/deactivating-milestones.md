@@ -29,7 +29,7 @@ Milestone coordinators also have a `deactivateAll()` method that deactivates _on
 
 A very common pattern you'll see is the one in the snippet above, where you activate some milestones in a `beforeEach` and then deactivate them (either individually or in bulk) in an `afterEach`. In fact, this pattern is so common that `@milestones/core` has a built in utility for it.
 
-If you use a testing library like Jest or Mocha that has uses global `beforeEach` and `afterEach` hooks, you can call `setupMilestones` to automatically enable a set of keys before your tests and disable them afterwards.
+If you use a testing library like Jest or Mocha that exposes global `beforeEach` and `afterEach` hooks, you can call `setupMilestones` to automatically enable a set of keys before your tests and disable them afterwards.
 
 ```ts
 import { setupMilestones } from '@milestones/core';
@@ -42,7 +42,7 @@ describe('something under test', () => {
 });
 ```
 
-If you use a testinig library like QUnit that exposes `beforeEach` and `afterEach` on a hooks object instead, you can pass that as an initial argument to `setupMilestones`:
+If you use a testing library like QUnit that exposes `beforeEach` and `afterEach` on a hooks object instead, you can pass that object as an initial argument to `setupMilestones`:
 
 ```ts
 import { setupMilestones } from '@milestones/core';

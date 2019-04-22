@@ -48,9 +48,3 @@ You can also use tags to allow your code to be paused at the same milestone more
   ```
   </pg.editor>
 </MilestonesPlayground>
-
-## Referencing Milestones
-
-Milestones can be activated by any of their relevant keys—any milestone that matches one of the keys given to `activateMilestones()` by ID or by any of its tags is considered active.
-
-Similarly, `advanceTo()` will proceed to the first milestone where the given key matches its ID or any of its tags.
