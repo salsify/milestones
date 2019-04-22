@@ -2,13 +2,13 @@
   "docs-draft": {
     "path": "versions/docs-draft",
     "name": "docs-draft",
-    "sha": "27958ef8fad0b76c4b6f6455135c2ba6a82fe5d2",
+    "sha": "73842a86068cc46c0ca50dfe193a48b58951bfd0",
     "tag": null
   },
   "-latest": {
     "path": "",
     "name": "Latest",
-    "sha": "27958ef8fad0b76c4b6f6455135c2ba6a82fe5d2",
+    "sha": "73842a86068cc46c0ca50dfe193a48b58951bfd0",
     "tag": null
   }
 }
