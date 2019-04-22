@@ -1,6 +1,6 @@
 {
   "name": "@milestones/ember",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "@milestones/core integration for Ember.js",
   "keywords": [
     "ember-addon"
