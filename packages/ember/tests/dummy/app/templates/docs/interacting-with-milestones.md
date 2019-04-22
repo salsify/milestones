@@ -46,7 +46,7 @@ await advanceTo(MilestoneA);
 // but not yet begun to execute.
 ```
 
-By default, when an active milestone is reached, it will pause until your test code advances to it and determines how it should proceed. However, if multiple milestones are activated together and one is reached while in the process of advancing to another, it will proceed as though it were inactive, avoiding deadlock in your test.
+By default, when an active milestone is reached, it will pause until your test code advances to it and determines how it should proceed. However, if multiple milestones are activated together and one is reached while in the process of advancing to another, it will proceed as though it were inactive, avoiding a deadlock in your test.
 
 <MilestonesPlayground @lines={{6}} as |pg|>
   <pg.preamble>
@@ -84,7 +84,7 @@ See the section on {{#link-to 'docs.coordination'}}Coordination{{/link-to}} for 
 
 ## Proceeding from a Milestone
 
-When you `advanceTo` an active milestone in a test, the application code will pause at that milestone, allowing you to make assertions about current state. The promise returned by `advanceTo` will resolve to a _milestone handle_, which is an object with several methods on it that allow you to dictate how the milestone will behave when it resumes.
+When you `advanceTo` an active milestone in a test, the application code will pause at that milestone, allowing you to make assertions about current state. The promise returned by `advanceTo` will resolve to a _milestone handle,_ which is an object with several methods on it that allow you to dictate how the milestone will behave when it resumes.
 
 ### `continue()`
 
