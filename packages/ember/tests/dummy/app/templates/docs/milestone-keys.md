@@ -20,14 +20,16 @@ You can also use tags to allow your code to be paused at the same milestone more
   import { milestone, advanceTo, activateMilestones } from '@milestones/core';
   import { log } from '@milestones/playground';
 
-  activateMilestones(['foo-tag']);
+  const FooTag = Symbol('foo-tag');
+
+  activateMilestones([FooTag]);
   ```
   </pg.preamble>
 
   <pg.editor @title="Test Code">
   ```ts
   let go = () => milestone(Symbol(), {
-    tags: ['foo-tag']
+    tags: [FooTag]
   });
 
   await Promise.all([go(), go(), go()]);
@@ -41,7 +43,7 @@ You can also use tags to allow your code to be paused at the same milestone more
   for (let i of [1, 2, 3]) {
     log('Advancing', i);
 
-    await advanceTo('foo-tag').andContinue();
+    await advanceTo(FooTag).andContinue();
   }
 
   log('Done');
