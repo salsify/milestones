@@ -1,0 +1,16 @@
+{
+  "name": "dummy-addon",
+  "version": "1.0.0",
+  "keywords": [
+    "ember-addon"
+  ],
+  "dependencies": {
+    "ember-cli-babel": "*",
+    "ember-cli-typescript": "*"
+  },
+  "ember-addon": {
+    "paths": [
+      "../.."
+    ]
+  }
+}

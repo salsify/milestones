@@ -9,6 +9,7 @@
 # dependencies
 /bower_components/
 /node_modules/
+/tests/dummy-addon/node_modules/
 
 # misc
 /coverage/
