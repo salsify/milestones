@@ -26,6 +26,9 @@
       "dummy/*": [
         "tests/dummy/app/*"
       ],
+      "dummy-addon": [
+        "tests/dummy-addon/addon"
+      ],
       "@milestones/ember": [
         "addon"
       ],
@@ -46,6 +49,7 @@
   "include": [
     "addon/**/*",
     "tests/**/*",
-    "types/**/*"
+    "types/**/*",
+    "lib/dummy-addon"
   ]
 }

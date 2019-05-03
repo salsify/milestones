@@ -43,6 +43,7 @@
     "@types/qunit": "^2.5.4",
     "chai": "^4.2.0",
     "common-tags": "^1.8.0",
+    "dummy-addon": "link:tests/dummy-addon",
     "ember-ace": "^2.0.1",
     "ember-basic-dropdown": "^1.1.2",
     "ember-cli": "~3.8.1",
