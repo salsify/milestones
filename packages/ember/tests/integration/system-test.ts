@@ -18,5 +18,19 @@ if (!Env.STRIP_MILESTONES) {
       await advanceTo('one').andContinue();
       assert.equal(await programPromise, 'after');
     });
+
+    test("throwing an error doesn't fail the test", async function(assert) {
+      let program = async (): Promise<string> => {
+        try {
+          return await milestone('one', async () => 'bad');
+        } catch (error) {
+          return error.message;
+        }
+      };
+
+      let programPromise = program();
+      await advanceTo('one').andThrow(new Error('ok'));
+      assert.equal(await programPromise, 'ok');
+    });
   });
 }
