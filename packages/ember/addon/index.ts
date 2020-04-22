@@ -3,16 +3,16 @@ import { run } from '@ember/runloop';
 import EmberObject from '@ember/object';
 import { registerSystem } from '@milestones/core';
 
-declare const require: {
+declare const requirejs: {
   (module: string): any; // eslint-disable-line
   has(module: string): boolean;
 };
 
 registerSystem({ run, defer });
 
-if (require.has('ember-concurrency')) {
-  const getRunningInstance = require('ember-concurrency/-task-instance').getRunningInstance;
-  const taskMacro = require('ember-concurrency').task;
+if (requirejs.has('ember-concurrency')) {
+  const getRunningInstance = requirejs('ember-concurrency/-task-instance').getRunningInstance;
+  const taskMacro = requirejs('ember-concurrency').task;
   class TaskHost extends EmberObject.extend({
     started: false,
     realPromise: null as unknown,
