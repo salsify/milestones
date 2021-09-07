@@ -34,3 +34,5 @@ script:
   - yarn build
   - yarn workspace @milestones/ember test
   - env STRIP_MILESTONES=true yarn workspace @milestones/ember test
+  - yarn workspace @milestones/ember add ember-concurrency@latest --dev
+  - yarn workspace @milestones/ember test
