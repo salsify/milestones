@@ -11,7 +11,10 @@ declare const requirejs: {
 registerSystem({ run, defer });
 
 if (requirejs.has('ember-concurrency')) {
-  const getRunningInstance = requirejs('ember-concurrency/-task-instance').getRunningInstance;
+  const getRunningInstanceModule = requirejs.has('ember-concurrency/-private/external/task-instance/executor')
+    ? requirejs('ember-concurrency/-private/external/task-instance/executor')
+    : requirejs('ember-concurrency/-task-instance');
+  const getRunningInstance = getRunningInstanceModule.getRunningInstance;
   const taskMacro = requirejs('ember-concurrency').task;
   class TaskHost extends EmberObject.extend({
     started: false,
